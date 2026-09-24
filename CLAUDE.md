@@ -1,7 +1,9 @@
-# [APP NAME] — Fitness Tracker (iOS + Android)
+# Plus Ultra — Fitness Tracker (iOS + Android)
 
 ## Product
-A personal fitness tracker for calories/food, steps, workouts, and body weight. Steps and active energy are read automatically from Apple Health (iOS) and Health Connect (Android). Single user, local-first, no accounts or backend in v1. It should feel like a calm, premium editorial product, not a gamified gym app.
+"Plus Ultra" is a personal fitness tracker for calories/food, steps, workouts, and body weight. Steps and active energy are read automatically from Apple Health (iOS) and Health Connect (Android). Single user, local-first, no accounts or backend in v1. It should feel like a calm, premium editorial product, not a gamified gym app.
+- Name: "Plus Ultra" is used in app.config (name), the web manifest (`name` and `short_name`), the HTML `<title>`, the splash screen and Settings → About. The name is the only reference: no My Hero Academia artwork, characters, logos, fonts or colour schemes.
+- PR moment: when a set breaks a personal record, a small "Plus Ultra" label in Fraunces italic appears beside the set row, with a 200ms fade-in and a light haptic. It's terracotta, using #B0532F in light mode for small-text contrast. On the finish summary, the PR section is headed "Plus Ultra". The phrase appears nowhere else.
 
 ## Tech stack
 - Expo (latest stable SDK) + TypeScript (strict), Expo Router for navigation
@@ -78,13 +80,21 @@ A personal fitness tracker for calories/food, steps, workouts, and body weight. 
   1. Your own photo.
   2. An illustration (the mapping is empty for now).
   3. The MuscleMap.
-- MuscleMap (/src/components/MuscleMap):
-  - An original front and back SVG figure; the design source is in /design/muscle-map.
-  - Accurate, fillable regions: upper_chest, chest, front_delts, side_delts, rear_delts, traps, upper_back (upper and mid back), lats, biceps (brachialis shares it), triceps, forearms.
-  - Simpler fillable regions for custom exercises: abs, obliques, lower_back, glutes, quads, hamstrings, calves.
-  - Primary muscles fill with the accent colour and secondary with sand (dark mode uses #5C4B3D). Everything else is a 1px ink outline at low opacity.
-  - Small size is an upper-body crop of the front or back view: whichever has more primary regions, then more secondary, then front. Large size shows front and back side by side.
-- Equipment glyphs: original 24px line icons with a 1.5px stroke at every size.
+- Muscle figure (/src/components/MuscleMap):
+  - Original drawing; the design source is in /design/muscle-figure. The earlier outline figure is archived in /design/archive.
+  - Style: in the tradition of a classic gym muscle chart, but drawn from scratch.
+    - A solid filled silhouette with heroic but anatomically plausible proportions: broad shoulders, a clear V-taper, thick arms.
+    - Muscles are separated only by thin gaps in the background colour. There are no outlines and no face details; the head is a simple solid shape.
+    - The abs have only two simple separations, drawn at large size only.
+  - Colours, light: body #E4D9CB, primary #C4623F, secondary #D19277 (40% of the way towards sand).
+  - Colours, dark: body #3B312A, primary #D9774F, secondary #8E5A42.
+  - Gap colour: always the colour of the surface the figure sits on.
+  - Separately fillable regions: upper_chest, chest, front_delts, side_delts, rear_delts, traps, upper_back, lats, biceps (brachialis shares it), triceps, forearms.
+  - Every other area is body shape only. The keys abs, obliques, lower_back, glutes, quads, hamstrings and calves stay valid for custom exercises but aren't highlighted yet.
+  - Views: front and back.
+  - Small size (56px library, 44px workout cards): a square crop from head to hips that fills the tile, using the view with more primary regions, then more secondary, then front.
+  - Large size (detail screen): full front and back side by side.
+- Equipment glyphs: geometric, at most 4 strokes, 1.5px stroke at every size, readable at 20px. There are glyphs for dumbbell, barbell, cable, machine and kettlebell. Bodyweight, EZ bar and Other are text only; the EZ bar glyph was dropped because it isn't readable at 20px.
 - Photos:
   - Never store image data in SQLite. On web the photos live in a separate IndexedDB store; on native, in the file system. Both are keyed by `photo_id`.
   - Each photo is kept at two sizes: a thumbnail (~160px) and a detail image (~800px wide). WebP where the browser can encode it; Safari can't, so it falls back to JPEG.
