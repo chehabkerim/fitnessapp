@@ -3,7 +3,7 @@
 ## Product
 "Plus Ultra" is a personal fitness tracker for calories/food, steps, workouts, and body weight. Steps and active energy are read automatically from Apple Health (iOS) and Health Connect (Android). Single user, local-first, no accounts or backend in v1. It should feel like a calm, premium editorial product, not a gamified gym app.
 - Name: "Plus Ultra" is used in app.config (name), the web manifest (`name` and `short_name`), the HTML `<title>`, the splash screen and Settings → About. The name is the only reference: no My Hero Academia artwork, characters, logos, fonts or colour schemes.
-- PR moment: when a set breaks a personal record, a small "Plus Ultra" label in Fraunces italic appears beside the set row, with a 200ms fade-in and a light haptic. It's terracotta, using #B0532F in light mode for small-text contrast. On the finish summary, the PR section is headed "Plus Ultra". The phrase appears nowhere else.
+- PR moment: when a set breaks a personal record, a small "Plus Ultra" label in Fraunces italic appears on its own line under the set row's inputs, right-aligned, with a 200ms fade-in and a light haptic. It's terracotta, using #B0532F in light mode for small-text contrast. On the finish summary, the PR section is headed "Plus Ultra". The phrase appears nowhere else.
 
 ## Tech stack
 - Expo (latest stable SDK) + TypeScript (strict), Expo Router for navigation
@@ -13,7 +13,7 @@
 - Android health (Phase 5): react-native-health-connect v4, using its own config plugin. `expo-health-connect` is deprecated and was merged into it, so don't install it.
 - Wrap both behind one shared interface in /src/health (e.g. getSteps(date), getStepsRange(start, end), getActiveEnergy(date), requestPermissions(), getPermissionStatus()) so the rest of the app never touches platform-specific code
 - Local storage: Drizzle ORM over SQLite, behind a repository layer in /src/db. Native uses expo-sqlite; web uses sql.js with IndexedDB persistence (see "Web first → Storage").
-- Charts: victory-native (Skia-based) is the plan of record, but it's under review for web. Skia on web loads CanvasKit, a 7.2 MB wasm file (2.9 MB gzipped). The alternative is thin charts drawn with react-native-svg.
+- Charts: Phase 1 uses thin line charts drawn with react-native-svg. victory-native (Skia) is revisited in Phase 4; on web, Skia loads CanvasKit, a 7.2 MB wasm file (2.9 MB gzipped).
 - Fonts: @expo-google-fonts/fraunces and @expo-google-fonts/inter
 - Barcode scanning: expo-camera (on web it uses its bundled barcode-detector polyfill, which needs HTTPS and camera permission)
 - Food data: Open Food Facts public API (search + barcode lookup), results cached locally
@@ -87,14 +87,19 @@
     - Muscles are separated only by thin gaps in the background colour. There are no outlines and no face details; the head is a simple solid shape.
     - The abs have only two simple separations, drawn at large size only.
   - Colours, light: body #E4D9CB, primary #C4623F, secondary #D19277 (40% of the way towards sand).
-  - Colours, dark: body #3B312A, primary #D9774F, secondary #8E5A42.
+  - Colours, dark: body #3B312A, primary #D9774F, secondary #A15E45.
   - Gap colour: always the colour of the surface the figure sits on.
   - Separately fillable regions: upper_chest, chest, front_delts, side_delts, rear_delts, traps, upper_back, lats, biceps (brachialis shares it), triceps, forearms.
+    - Lats are two wings either side of the spine, tapering towards the waist; the lower back between them stays body colour.
+    - The front view shows the lateral head of the triceps as a thin outer strip.
   - Every other area is body shape only. The keys abs, obliques, lower_back, glutes, quads, hamstrings and calves stay valid for custom exercises but aren't highlighted yet.
   - Views: front and back.
-  - Small size (56px library, 44px workout cards): a square crop from head to hips that fills the tile, using the view with more primary regions, then more secondary, then front.
+  - Small size (56px library, 44px workout cards):
+    - A square crop from chin to belt, so the torso and arms fill the tile's width and the head is mostly out of frame.
+    - No internal separations except the gaps around filled regions.
+    - View choice: score = 2 × primary + secondary regions visible in that view. Partly visible regions (the front triceps strip) count half, and ties go to front.
   - Large size (detail screen): full front and back side by side.
-- Equipment glyphs: geometric, at most 4 strokes, 1.5px stroke at every size, readable at 20px. There are glyphs for dumbbell, barbell, cable, machine and kettlebell. Bodyweight, EZ bar and Other are text only; the EZ bar glyph was dropped because it isn't readable at 20px.
+- Equipment glyphs: geometric, at most 4 strokes, 1.5px stroke at every size, readable at 20px. There are glyphs for dumbbell, cable, machine and kettlebell. Bodyweight, barbell, EZ bar and Other are text only; the barbell and EZ bar glyphs were dropped because they aren't readable at 20px.
 - Photos:
   - Never store image data in SQLite. On web the photos live in a separate IndexedDB store; on native, in the file system. Both are keyed by `photo_id`.
   - Each photo is kept at two sizes: a thumbnail (~160px) and a detail image (~800px wide). WebP where the browser can encode it; Safari can't, so it falls back to JPEG.

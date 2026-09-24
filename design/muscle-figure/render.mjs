@@ -6,7 +6,7 @@ import { GLYPHS, GLYPH_LABELS } from './glyphs.mjs';
 import { EXERCISES, MUSCLE_LABEL } from './exercises.mjs';
 
 const [fontsDir = '', out = './preview.html'] = process.argv.slice(2);
-const FEATURED = ['Incline Dumbbell Bench Press', 'Lat Pulldown', 'Upper Back Row', 'Lateral Raise', 'Tricep Pushdown', 'Hammer Curl'];
+const FEATURED = ['Lat Pulldown', 'Hammer Curl'];
 
 function glyph(key, color, px) {
   if (!GLYPHS[key]) return '';
@@ -16,7 +16,7 @@ const muscles = (ex) => ex.primary.map((m) => MUSCLE_LABEL[m]).join(', ');
 
 function panel(name, t) {
   const rows = EXERCISES.map((ex) => `
-    <div class="row"><div class="tile56">${smallSvg(ex, t, 56, t.surface)}</div>
+    <div class="row"><div class="tile56">${smallSvg(ex, t, 56, t.surface)}</div><div class="tile44 mini">${smallSvg(ex, t, 44, t.surface)}</div>
       <div><div class="exname">${ex.name}</div>
       <div class="meta">${muscles(ex)}<span class="dot">·</span>${glyph(ex.equipment, t.muted, 20)}${GLYPH_LABELS[ex.equipment]}</div></div></div>`).join('<div class="hr"></div>');
 
@@ -36,7 +36,7 @@ function panel(name, t) {
       <div class="whead"><div class="tile44">${smallSvg(incline, t, 44, t.surface)}</div><div><div class="exname">${incline.name}</div><div class="meta">${glyph('dumbbell', t.muted, 20)}Dumbbell</div></div></div>
       <div class="sethead"><span>Set</span><span>Previous</span><span>kg each</span><span>Reps</span><span></span></div>
       <div class="setrow done"><span class="setn">1</span><span class="prev">22.5 × 10</span><span class="inp">22.5</span><span class="inp">10</span><span class="ck">${check}</span></div>
-      <div class="setrow done"><span class="setn">2</span><span class="prev">22.5 × 9</span><span class="inp">25</span><span class="inp">8</span><span class="ck">${check}</span><span class="pu">Plus Ultra</span></div>
+      <div class="setrow done pr"><span class="setn">2</span><span class="prev">22.5 × 9</span><span class="inp">25</span><span class="inp">8</span><span class="ck">${check}</span><span class="pu">Plus Ultra</span></div>
       <div class="setrow"><span class="setn">3</span><span class="prev">22.5 × 8</span><span class="inp">25</span><span class="inp"></span><span class="ck empty"></span></div>
     </div>`;
 
@@ -44,11 +44,11 @@ function panel(name, t) {
 
   return `<div class="panel" style="--bg:${t.bg};--surface:${t.surface};--ink:${t.ink};--muted:${t.muted};--line:${t.line};--accentText:${t.accentText};--sage:${t.sage};--sageTint:${t.sageTint}">
     <div class="title">Plus Ultra <span>· ${name === 'light' ? 'Light' : 'Dark'}</span></div>
-    <h2>Library · all 12 exercises (56px)</h2><div class="card">${rows}</div>
-    <h2>Active workout card · PR on set 2</h2>${setCard}
+    <h2>Library · all 12 exercises (56px tile, 44px alongside for comparison)</h2><div class="card">${rows}</div>
+    <h2>Active workout card at 360px · PR on set 2</h2>${setCard}
     <h2>Equipment glyphs · 20px and 40px, 1.5px stroke</h2><div class="glyphs">${glyphs}</div>
-    <div class="note">Bodyweight, EZ bar and Other are text only.</div>
-    <h2>Small (56, 44) and large figures</h2>${figs}
+    <div class="note">Bodyweight, Barbell, EZ bar and Other are text only (barbell and EZ bar aren't readable at 20px).</div>
+    <h2>Large figures</h2>${figs}
   </div>`;
 }
 
@@ -62,21 +62,21 @@ const css = `
 .title{font-family:Fraunces;font-weight:500;font-size:36px}.title span{color:var(--muted);font-size:24px}
 h2{font:500 12px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:36px 0 12px}
 h3{font-family:Fraunces;font-weight:500;font-size:22px;margin:0 0 6px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:4px 16px;width:390px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:4px 16px;width:390px}.mini{margin-left:-6px}
 .row{display:flex;gap:14px;align-items:center;padding:12px 0}.hr{height:1px;background:var(--line)}
 .tile56{width:56px;height:56px;border-radius:12px;overflow:hidden;background:var(--surface);flex:none}
 .tile44{width:44px;height:44px;border-radius:10px;overflow:hidden;background:var(--surface);flex:none}
 .solo{border:1px solid var(--line)}
 .exname{font-weight:500;font-size:16px}.meta{font-size:13px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:5px}.dot{margin:0 1px}
-.wcard{padding:16px}.whead{display:flex;gap:12px;align-items:center;margin-bottom:14px}
-.sethead,.setrow{display:grid;grid-template-columns:34px 1fr 72px 56px 44px;align-items:center;gap:8px;position:relative}
+.wcard{padding:16px 12px;width:360px}.whead{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.sethead,.setrow{display:grid;grid-template-columns:28px 1fr 68px 52px 44px;align-items:center;gap:8px;position:relative}.setrow.pr{padding-bottom:20px}
 .sethead{font-size:12px;color:var(--muted);padding:0 6px 6px;border-bottom:1px solid var(--line)}
 .setrow{padding:6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
 .setrow.done{background:var(--sageTint)}
 .setn{font-weight:500}.prev{color:var(--muted);font-size:14px}
 .inp{height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:500}
 .ck{width:44px;height:44px;border-radius:22px;background:var(--sage);display:flex;align-items:center;justify-content:center}.ck.empty{background:none;border:1.5px solid var(--line)}
-.pu{position:absolute;left:40px;bottom:3px;font-family:Fraunces;font-style:italic;font-weight:500;font-size:13px;color:var(--accentText)}
+.pu{position:absolute;right:58px;bottom:3px;font-family:Fraunces;font-style:italic;font-weight:500;font-size:13px;color:var(--accentText)}
 .glyphs{display:flex;flex-wrap:wrap;gap:26px}.gcell{display:flex;flex-direction:column;align-items:center;gap:8px}.gpair{display:flex;align-items:center;gap:14px}
 .cap{font-size:12px;color:var(--muted);text-align:center}.note{font-size:12px;color:var(--muted);margin-top:10px}
 .ex{border-top:1px solid var(--line);padding:24px 0}
