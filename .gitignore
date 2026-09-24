@@ -41,6 +41,6 @@ yarn-error.*
 /android
 
 # generated
-public/sql-wasm-*.wasm
+public/sql-wasm.wasm
 test-results/
 playwright-report/

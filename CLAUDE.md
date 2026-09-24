@@ -55,6 +55,21 @@
 - Accessible: labels, 44pt tap targets, WCAG AA contrast.
 - After each phase: run type-check and tests, confirm the web static export builds, fix all errors, then summarise what was built and exactly what I should test, using the checklist in "Web first → Device testing" (plus native devices once native builds are in scope).
 
+## Commands
+- `npm install`: also copies the sql.js WASM into `public/` (postinstall).
+- `npm run web`: dev server. `npm start`: Expo Go (scan the QR code on your phone).
+- `npm run typecheck`, `npm test` (Jest), `npm run lint`.
+- `npm run build:web`: static export to `dist/` plus the generated service worker (`dist/sw.js`).
+- `npm run test:e2e`: Playwright against `dist/` (build first). Set `PW_CHROMIUM_PATH` to use a preinstalled Chromium.
+- `npm run db:generate`: new Drizzle migration after a schema change (both engines use it).
+- Package installs in this environment: `EXPO_OFFLINE=1 npx expo install <pkg>` (the Expo version API is blocked here).
+
+## Implementation notes (Phase 1)
+- Routes live in `/app`. Records are addressed with query params (`/workouts/exercise?id=3`), not `[id]` segments, so the static export works on any static host and offline without rewrite rules.
+- Tabs use Expo Router's headless tabs (`expo-router/ui`) so the minimised-workout bar can sit above a custom tab bar.
+- Live data: `useLive(selector, deps)` re-runs synchronous repository reads after every write; `useRepos()` for event handlers.
+- Web accessibility state uses RN's `aria-*` props (`aria-checked`, `aria-selected`); `accessibilityState` alone doesn't reach the DOM in react-native-web. Elements that must be skipped by Tab use `tabIndex={-1}`.
+
 ## Roadmap
 - **Phase 1:** foundation + workouts (web-first, phone-first). Other tabs are styled placeholders.
 - **Phase 2:** onboarding + calorie target + body weight.
@@ -166,7 +181,7 @@ Phases 1–4 are built, used and tested as a website first. iOS and Android must
 
 ### Deployment
 - `npx expo export -p web` produces a static site in `dist/`.
-- Simplest host: EAS Hosting (`eas deploy`), on the same Expo account as EAS Build, with headers set in the app config. Netlify, Vercel and Cloudflare Pages also work with `dist/`.
+- Simplest host: EAS Hosting (`npx eas-cli@latest deploy` after `npm run build:web`). Netlify and Cloudflare Pages use `public/_headers`; Vercel uses `vercel.json`. All serve `dist/` with no rewrites.
 - Headers: sql.js needs no COOP/COEP headers. Serve the service worker with `Cache-Control: no-cache`. HTTPS is required (all hosts above provide it).
 
 ### Device testing (after each phase)

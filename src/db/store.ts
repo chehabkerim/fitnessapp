@@ -57,6 +57,7 @@ export function useRepos(): Repos {
  */
 export function useLive<T>(select: (r: Repos) => T, deps: unknown[] = []): T {
   const v = useSyncExternalStore(subscribe, () => version, () => version);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // The selector re-runs when the database changes (v) or its inputs (deps) change.
+  // eslint-disable-next-line react-hooks/use-memo, react-hooks/exhaustive-deps
   return useMemo(() => select(getRepos()), [v, ...deps]);
 }

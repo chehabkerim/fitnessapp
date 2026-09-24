@@ -195,6 +195,11 @@ export function workoutRepo({ db, changed }: RepoCtx) {
       return weId;
     },
 
+    setRest(weId: number, restSec: number | null) {
+      db.update(workoutExercises).set({ restSec }).where(eq(workoutExercises.id, weId)).run();
+      changed();
+    },
+
     removeExercise(weId: number) {
       db.delete(workoutExercises).where(eq(workoutExercises.id, weId)).run();
       changed();

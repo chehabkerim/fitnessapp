@@ -1,0 +1,5 @@
+# Netlify / Cloudflare Pages: always revalidate the service worker so deploys roll out.
+/sw.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache

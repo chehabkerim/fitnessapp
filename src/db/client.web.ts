@@ -9,8 +9,8 @@ import type { OpenResult } from './open';
 import { ensureSeed } from './seed';
 import type { AppDb, Engine } from './types';
 
-// Kept in sync with scripts/copy-wasm.mjs, which copies the WASM into public/.
-import sqlJsPkg from 'sql.js/package.json';
+// scripts/copy-wasm.mjs copies the WASM into public/ (served from our origin, precached by the service worker).
+const WASM_URL = '/sql-wasm.wasm';
 
 const LOCK = 'plus-ultra-db';
 const CHANNEL = 'plus-ultra-db';
@@ -18,7 +18,7 @@ const HANDOFF_TIMEOUT_MS = 1500;
 
 let sqlPromise: Promise<SqlJsStatic> | null = null;
 function loadSqlJs(): Promise<SqlJsStatic> {
-  sqlPromise ??= import('sql.js/dist/sql-wasm-browser.js').then((m) => m.default({ locateFile: () => `/sql-wasm-${sqlJsPkg.version}.wasm` }));
+  sqlPromise ??= import('sql.js/dist/sql-wasm-browser.js').then((m) => m.default({ locateFile: () => WASM_URL }));
   return sqlPromise;
 }
 
