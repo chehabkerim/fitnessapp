@@ -4,6 +4,8 @@ export interface HapticsApi {
   light(): void;
   success(): void;
   selection(): void;
+  /** Set complete and PRs. */
+  strong(): void;
 }
 
 export type AlertPermission = 'granted' | 'denied' | 'default' | 'unsupported';

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { check, dismissRestAlertPrompt, launch, logSet, newProfileDir, openApp, reps, startTemplate, weight } from './helpers';
+import { check, completeSet, dismissRestAlertPrompt, launch, logSet, newProfileDir, openApp, reps, startTemplate, weight } from './helpers';
 
 const EX = 'Incline Dumbbell Bench Press';
 
@@ -18,7 +18,8 @@ test('Previous fills in, and beating it shows "Plus Ultra"', async () => {
   await expect(page.getByText('Plus Ultra', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Done' }).click();
 
-  // Session 2: repeat it. Set 1 is prefilled and Previous shows last time.
+  // Session 2: repeat it from History. Set 1 is prefilled and Previous shows last time.
+  await page.getByRole('tab', { name: 'History' }).click();
   await page.getByRole('button', { name: 'Repeat Back & Chest' }).click();
   await expect(weight(page, EX, 1)).toHaveValue('22.5');
   await expect(reps(page, EX, 1)).toHaveValue('10');
@@ -26,7 +27,7 @@ test('Previous fills in, and beating it shows "Plus Ultra"', async () => {
 
   await weight(page, EX, 1).fill('25');
   await reps(page, EX, 1).fill('8');
-  await check(page, EX, 1).click();
+  await completeSet(page, EX, 1).click();
   await dismissRestAlertPrompt(page);
   await expect(page.getByLabel('Personal record. Plus Ultra')).toBeVisible();
 
@@ -47,7 +48,7 @@ test('keyboard: Tab moves weight → reps → complete, Enter completes', async 
   await expect(reps(page, EX, 1)).toBeFocused();
   await page.keyboard.type('12');
   await page.keyboard.press('Tab');
-  await expect(check(page, EX, 1)).toBeFocused();
+  await expect(completeSet(page, EX, 1)).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(check(page, EX, 1)).toHaveAttribute('aria-checked', 'true');
   await dismissRestAlertPrompt(page);
@@ -83,7 +84,34 @@ test('export → reset → import restores the log', async () => {
   await page.getByRole('button', { name: 'Import and replace' }).click();
   await expect(page.getByText(/Imported your backup/)).toBeVisible();
 
-  await page.goto('/workouts');
+  await page.goto('/history');
   await expect(page.getByRole('button', { name: /, Arms$/ })).toBeVisible();
+  await ctx.close();
+});
+
+test('touch: the keypad replaces the keyboard and saves as you type', async () => {
+  const profile = newProfileDir();
+  const { chromium } = await import('@playwright/test');
+  const ctx = await chromium.launchPersistentContext(profile, {
+    executablePath: process.env.PW_CHROMIUM_PATH || undefined,
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const page = await openApp(ctx);
+  await startTemplate(page, 'Back & Chest');
+  await page.getByRole('button', { name: `Weight, ${EX}, set 1: empty. Change` }).click();
+  await expect(page.getByText('Weight · Set 1')).toBeVisible();
+  await page.getByRole('button', { name: '2', exact: true }).click();
+  await page.getByRole('button', { name: '5', exact: true }).click();
+  await page.getByRole('button', { name: 'Add 2.5' }).click();
+  await page.getByRole('button', { name: 'Switch to Reps' }).click();
+  await page.getByRole('button', { name: '8', exact: true }).click();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await expect(page.getByRole('button', { name: `Weight, ${EX}, set 1: 27.5. Change` })).toBeVisible();
+  await expect(page.getByRole('button', { name: `Reps, ${EX}, set 1: 8. Change` })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole('button', { name: `Weight, ${EX}, set 1: 27.5. Change` })).toBeVisible();
   await ctx.close();
 });

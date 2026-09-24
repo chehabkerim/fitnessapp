@@ -20,13 +20,18 @@ export async function launch(profileDir: string): Promise<BrowserContext> {
 export async function openApp(ctx: BrowserContext, path = '/workouts'): Promise<Page> {
   const page = await ctx.newPage();
   await page.goto(BASE + path);
-  await expect(page.getByText('Start from a template').or(page.getByText('Plus Ultra is open in another tab')).or(page.getByRole('button', { name: 'Finish' }))).toBeVisible();
+  await expect(page.getByText('Up next').or(page.getByText('Plus Ultra is open in another tab')).or(page.getByRole('button', { name: 'Finish' })).first()).toBeVisible();
   return page;
 }
 
 export const weight = (page: Page, exercise: string, set: number) => page.getByLabel(new RegExp(`^(Weight|Added weight), ${exercise}, set ${set}$`));
 export const reps = (page: Page, exercise: string, set: number) => page.getByLabel(`Reps, ${exercise}, set ${set}`, { exact: true });
+/** The tick on a completed set in the set list. */
 export const check = (page: Page, exercise: string, set: number) => page.getByRole('checkbox', { name: new RegExp(`^(Complete|Completed) ${exercise}, set ${set}$`) });
+/** The big COMPLETE SET button for the current set. */
+export const completeSet = (page: Page, exercise: string, set: number) => page.getByRole('button', { name: `Complete ${exercise}, set ${set}`, exact: true });
+/** Select a set in the set list (to edit it in the set card). */
+export const selectSet = (page: Page, set: number) => page.getByRole('button', { name: new RegExp(`^Set ${set}, `) });
 
 export async function startTemplate(page: Page, name: string) {
   await page.getByRole('button', { name: `Start ${name}` }).click();
@@ -36,7 +41,7 @@ export async function startTemplate(page: Page, name: string) {
 export async function logSet(page: Page, exercise: string, set: number, w: string, r: string) {
   await weight(page, exercise, set).fill(w);
   await reps(page, exercise, set).fill(r);
-  await check(page, exercise, set).click();
+  await completeSet(page, exercise, set).click();
   await expect(check(page, exercise, set)).toHaveAttribute('aria-checked', 'true');
   await dismissRestAlertPrompt(page);
 }

@@ -50,7 +50,7 @@ export const SetRow = forwardRef<SetRowHandle, SetRowProps>(function SetRow(prop
   const [prOpacity] = useState(() => new Animated.Value(pr ? 1 : 0));
   useEffect(() => void Animated.timing(tint, { toValue: done ? 1 : 0, duration: motion.base, useNativeDriver: false }).start(), [done, tint]);
   useEffect(() => void Animated.timing(prOpacity, { toValue: pr ? 1 : 0, duration: motion.base, useNativeDriver: false }).start(), [pr, prOpacity]);
-  const bg = tint.interpolate({ inputRange: [0, 1], outputRange: [c.surface, c.sageTint] });
+  const bg = tint.interpolate({ inputRange: [0, 1], outputRange: [c.surface, c.current] });
 
   const showWeight = usesWeight(logType);
   const showReps = usesReps(logType);
@@ -78,7 +78,7 @@ export const SetRow = forwardRef<SetRowHandle, SetRowProps>(function SetRow(prop
           style={styles.setCell}
           hitSlop={{ top: 8, bottom: 8 }}
         >
-          <Text variant="bodyMedium" color={label === 'W' ? 'accentStrong' : 'ink'} numeric>
+          <Text variant="bodyMedium" color={label === 'W' ? 'accentText' : 'ink'} numeric>
             {label}
           </Text>
         </Pressable>
@@ -141,14 +141,14 @@ export const SetRow = forwardRef<SetRowHandle, SetRowProps>(function SetRow(prop
           accessibilityState={{ checked: done }}
           aria-checked={done}
           accessibilityLabel={`${done ? 'Completed' : 'Complete'} ${nameForA11y}`}
-          style={[styles.check, done ? { backgroundColor: c.sage } : { borderColor: c.line, borderWidth: 1.5 }]}
+          style={[styles.check, done ? { backgroundColor: c.tick } : { borderColor: c.line, borderWidth: 1.5 }]}
         >
-          <Icon name="check" size={22} color={done ? c.onSage : c.faint} strokeWidth={2} />
+          <Icon name="check" size={22} color={done ? c.onTick : c.muted} strokeWidth={2} />
         </Pressable>
       </Pressable>
       {pr && (
         <Animated.Text
-          style={[styles.pr, { color: c.accentStrong, opacity: prOpacity }]}
+          style={[styles.pr, { color: c.accentText, opacity: prOpacity }]}
           accessibilityLabel="Personal record. Plus Ultra"
           accessibilityLiveRegion="polite"
           maxFontSizeMultiplier={1.4}
@@ -167,7 +167,7 @@ export const SetRow = forwardRef<SetRowHandle, SetRowProps>(function SetRow(prop
       overshootRight={false}
       renderRightActions={() => (
         <Pressable accessibilityRole="button" accessibilityLabel={`Delete ${nameForA11y}`} onPress={onDelete} style={[styles.swipeDelete, { backgroundColor: c.danger }]}>
-          <Icon name="trash" size={22} color={c.onAccent} />
+          <Icon name="trash" size={22} color={c.onPurple} />
         </Pressable>
       )}
       onSwipeableOpen={(dir) => {
@@ -211,6 +211,6 @@ const styles = StyleSheet.create({
   repsInput: { width: SET_COLUMNS.reps },
   repsWide: { width: SET_COLUMNS.weight + 2 * 26 },
   check: { width: SET_COLUMNS.check, height: SET_COLUMNS.check, borderRadius: SET_COLUMNS.check / 2, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
-  pr: { fontFamily: fonts.displayItalic, fontSize: 13, lineHeight: 16, textAlign: 'right', paddingRight: SET_COLUMNS.check + 12, paddingTop: 2 },
+  pr: { fontFamily: fonts.cond800i, fontSize: 13, lineHeight: 16, textAlign: 'right', paddingRight: SET_COLUMNS.check + 12, paddingTop: 2 },
   swipeDelete: { width: 88, alignItems: 'center', justifyContent: 'center' },
 });

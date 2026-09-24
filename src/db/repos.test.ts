@@ -46,6 +46,11 @@ describe('seed', () => {
     expect(r.templates.list()).toHaveLength(1);
   });
 
+  it('starts new installs in the dark theme', async () => {
+    const { r } = await setup();
+    expect(r.settings.get().theme).toBe('dark');
+  });
+
   it('stores cues and muscles as arrays', async () => {
     const { incline } = await setup();
     expect(incline.primaryMuscles).toEqual(['upper_chest']);

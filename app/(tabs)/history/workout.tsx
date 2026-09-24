@@ -67,7 +67,7 @@ export default function PastWorkout() {
             <Card key={e.we.id} style={styles.card}>
               <View style={styles.row}>
                 <ExerciseTile exercise={e.exercise} px={44} />
-                <Text variant="subheading" style={styles.flex} onPress={() => router.push({ pathname: '/workouts/exercise', params: { id: String(e.exercise.id) } })}>
+                <Text variant="subheading" style={styles.flex} onPress={() => router.push({ pathname: '/exercises/detail', params: { id: String(e.exercise.id) } })}>
                   {e.exercise.name}
                 </Text>
               </View>
@@ -76,7 +76,7 @@ export default function PastWorkout() {
                 let n = 0;
                 return e.sets.map((s) => (
                   <View key={s.id} style={styles.setLine}>
-                    <Text variant="label" color={s.isWarmup ? 'accentStrong' : 'muted'} style={styles.setNo} numeric>
+                    <Text variant="label" color={s.isWarmup ? 'accentText' : 'muted'} style={styles.setNo} numeric>
                       {s.isWarmup ? 'W' : ++n}
                     </Text>
                     <Text numeric>{formatSetLong(s, e.exercise, units)}</Text>
@@ -117,7 +117,7 @@ export default function PastWorkout() {
           value={templateName}
           onChangeText={setTemplateName}
           placeholder="Template name"
-          placeholderTextColor={c.faint}
+          placeholderTextColor={c.muted}
           accessibilityLabel="Template name"
           style={[styles.input, { color: c.ink, borderColor: c.line, backgroundColor: c.bg }]}
         />

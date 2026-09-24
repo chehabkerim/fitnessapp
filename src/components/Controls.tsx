@@ -8,7 +8,7 @@ import { Text } from './Text';
 export function SegmentedControl<T extends string>({ value, options, onChange, label }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void; label: string }) {
   const { c } = useTheme();
   return (
-    <View accessibilityRole="radiogroup" accessibilityLabel={label} style={[styles.segment, { backgroundColor: c.surfaceAlt }]}>
+    <View accessibilityRole="radiogroup" accessibilityLabel={label} style={[styles.segment, { backgroundColor: c.raised }]}>
       {options.map((o) => {
         const selected = o.value === value;
         return (
@@ -19,9 +19,9 @@ export function SegmentedControl<T extends string>({ value, options, onChange, l
             aria-checked={selected}
             accessibilityLabel={o.label}
             onPress={() => onChange(o.value)}
-            style={[styles.segItem, selected && { backgroundColor: c.surface, borderColor: c.line }]}
+            style={[styles.segItem, selected && { backgroundColor: c.surface, borderColor: c.accent, borderWidth: 1.5 }]}
           >
-            <Text variant="label" color={selected ? 'ink' : 'muted'}>
+            <Text variant="label" color={selected ? 'accentText' : 'muted'} style={styles.segLabel}>
               {o.label}
             </Text>
           </Pressable>
@@ -38,9 +38,10 @@ export function Toggle({ value, onChange, label }: { value: boolean; onChange: (
       value={value}
       onValueChange={onChange}
       accessibilityLabel={label}
-      trackColor={{ false: c.line, true: c.sage }}
-      thumbColor={c.surface}
-      {...({ activeThumbColor: c.surface } as object)}
+      // Off track uses the "×" grey so the control keeps 3:1 against the card in both themes.
+      trackColor={{ false: c.times, true: c.accent }}
+      thumbColor={c.onPurple}
+      {...({ activeThumbColor: c.onPurple } as object)}
     />
   );
 }
@@ -87,8 +88,9 @@ export function SectionTitle({ children, right }: { children: string; right?: Re
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  segLabel: { textTransform: 'uppercase', letterSpacing: 0.8 },
   segment: { flexDirection: 'row', borderRadius: radius.md, padding: 3 },
-  segItem: { flex: 1, minHeight: layout.minTap - 4, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm, borderWidth: 1, borderColor: 'transparent' },
+  segItem: { flex: 1, minHeight: layout.minTap, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm, borderWidth: 1, borderColor: 'transparent' },
   row: { flexDirection: 'row', alignItems: 'center', minHeight: 56, gap: space.sm, paddingVertical: space.xs },
   section: { flexDirection: 'row', alignItems: 'center', marginTop: space.xxl, marginBottom: space.sm, minHeight: 24 },
 });

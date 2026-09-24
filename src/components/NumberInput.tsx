@@ -50,7 +50,7 @@ export const NumberInput = forwardRef<TextInput, NumberInputProps>(function Numb
       inputMode={decimal ? 'decimal' : 'numeric'}
       selectTextOnFocus
       accessibilityLabel={label}
-      placeholderTextColor={c.faint}
+      placeholderTextColor={c.muted}
       maxFontSizeMultiplier={1.6}
       returnKeyType="done"
       enterKeyHint="done"

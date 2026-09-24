@@ -78,7 +78,7 @@ function ExerciseForm({ existing, addTo }: { existing?: ExerciseRow; addTo?: str
 
   return (
     <Screen back title={existing ? 'Edit exercise' : 'New exercise'} right={<Button label="Save" compact disabled={!valid} onPress={save} />}>
-      <TextInput value={name} onChangeText={setName} placeholder="Exercise name" placeholderTextColor={c.faint} accessibilityLabel="Exercise name" style={[styles.name, { color: c.ink, borderBottomColor: c.line }]} />
+      <TextInput value={name} onChangeText={setName} placeholder="Exercise name" placeholderTextColor={c.muted} accessibilityLabel="Exercise name" style={[styles.name, { color: c.ink, borderBottomColor: c.line }]} />
 
       <SectionTitle>Equipment</SectionTitle>
       <View style={styles.chips}>
@@ -137,7 +137,7 @@ function ExerciseForm({ existing, addTo }: { existing?: ExerciseRow; addTo?: str
         onChangeText={setCues}
         multiline
         placeholder="One short cue per line"
-        placeholderTextColor={c.faint}
+        placeholderTextColor={c.muted}
         accessibilityLabel="Form cues, one per line"
         style={[styles.cues, { color: c.ink, borderColor: c.line, backgroundColor: c.surface }]}
       />
@@ -158,9 +158,9 @@ function ExerciseForm({ existing, addTo }: { existing?: ExerciseRow; addTo?: str
 
 function Chip({ label, on, half, onPress }: { label: string; on: boolean; half?: boolean; onPress(): void }) {
   const { c } = useTheme();
-  // Primary: solid accent (AA with its text colour). Secondary: outlined in the figure's secondary tint.
-  const bg = on ? c.accentStrong : half ? c.surfaceAlt : 'transparent';
-  const fg = on ? c.onAccent : c.ink;
+  // Primary: accent outline and accent text. Secondary: outlined in the figure's secondary colour.
+  const bg = on || half ? c.raised : 'transparent';
+  const fg = on ? c.accentText : c.ink;
   return (
     <Pressable
       onPress={onPress}
@@ -168,7 +168,7 @@ function Chip({ label, on, half, onPress }: { label: string; on: boolean; half?:
       accessibilityState={{ selected: on || !!half }}
       aria-pressed={on || !!half}
       accessibilityLabel={`${label}${on ? ', primary' : half ? ', secondary' : ''}`}
-      style={[styles.chip, { backgroundColor: bg, borderColor: on ? bg : half ? c.figureSecondary : c.line, borderWidth: half ? 2 : 1 }]}
+      style={[styles.chip, { backgroundColor: bg, borderColor: on ? c.accent : half ? c.figureSecondary : c.outline, borderWidth: on || half ? 2 : 1 }]}
     >
       <Text variant="label" style={{ color: fg }}>
         {label}
@@ -179,7 +179,7 @@ function Chip({ label, on, half, onPress }: { label: string; on: boolean; half?:
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  name: { fontFamily: fonts.display, fontSize: 30, lineHeight: 36, borderBottomWidth: 1, paddingVertical: space.xs, minHeight: 48 },
+  name: { fontFamily: fonts.cond800i, fontSize: 30, lineHeight: 36, borderBottomWidth: 1, paddingVertical: space.xs, minHeight: 48 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
   chip: { minHeight: 40, paddingHorizontal: space.sm, borderRadius: radius.pill, borderWidth: 1, justifyContent: 'center' },
   toggleRow: { flexDirection: 'row', alignItems: 'center', marginTop: space.md, minHeight: 44 },

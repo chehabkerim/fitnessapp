@@ -24,7 +24,7 @@ export function MuscleLegend({ exercise }: { exercise: Pick<ExerciseRow, 'primar
   return (
     <View style={styles.legend}>
       <Text variant="label">
-        <Text variant="label" color="accentStrong">
+        <Text variant="label" color="accentText">
           Primary{'  '}
         </Text>
         {exercise.primaryMuscles.map((m) => MUSCLE_LABELS[m]).join(', ') || '—'}

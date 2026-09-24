@@ -11,7 +11,8 @@ export const SEED_VERSION = 1;
  * so seeded exercises or templates you delete stay deleted.
  */
 export function ensureSeed(db: AppDb): void {
-  db.insert(settings).values({ id: 1 }).onConflictDoNothing().run();
+  // New installs start in the dark theme (Ignite's default); existing choices are kept.
+  db.insert(settings).values({ id: 1, theme: 'dark' }).onConflictDoNothing().run();
   db.insert(appState).values({ id: 1 }).onConflictDoNothing().run();
   const state = db.select({ v: appState.seedVersion }).from(appState).where(eq(appState.id, 1)).get();
   if ((state?.v ?? 0) >= SEED_VERSION) return;

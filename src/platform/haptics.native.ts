@@ -6,4 +6,5 @@ export const haptics: HapticsApi = {
   light: () => void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}),
   success: () => void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {}),
   selection: () => void Haptics.selectionAsync().catch(() => {}),
+  strong: () => void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {}),
 };

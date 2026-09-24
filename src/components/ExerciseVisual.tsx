@@ -19,21 +19,27 @@ export function usePhotoUrl(photoId: string | null, size: 'thumb' | 'detail') {
   return loaded && loaded.key === key ? loaded.url : null;
 }
 
-/** Square tile (56 library, 44 workout cards): your photo, else the muscle figure. */
-export function ExerciseTile({ exercise, px, surface }: { exercise: VisualSource & { name: string }; px: 56 | 44; surface?: string }) {
+/** Square muscle tile (44–84px): your photo, else the muscle figure. Bordered like cards (2px accent in light). */
+export function ExerciseTile({ exercise, px }: { exercise: VisualSource & { name: string }; px: number }) {
   const { c } = useTheme();
   const v = getExerciseVisual(exercise, 'small');
   const url = usePhotoUrl(v.kind === 'photo' ? v.photoId : null, 'thumb');
-  const bg = surface ?? c.surface;
+  const bw = c.cardBorderWidth;
+  const inner = px - bw * 2;
   return (
-    <View style={[styles.tile, { width: px, height: px, borderRadius: px === 56 ? radius.md : radius.sm, backgroundColor: bg }]}>
+    <View style={[styles.tile, { width: px, height: px, borderRadius: px >= 60 ? radius.md : radius.sm, backgroundColor: c.tileBg, borderColor: c.cardBorder, borderWidth: bw }]}>
       {v.kind === 'photo' ? (
-        url ? <Image source={{ uri: url }} style={{ width: px, height: px }} accessibilityLabel={`Photo of ${exercise.name}`} /> : null
+        url ? <Image source={{ uri: url }} style={{ width: inner, height: inner }} accessibilityLabel={`Photo of ${exercise.name}`} /> : null
       ) : v.kind === 'figure' ? (
-        <MuscleMap view={v.views[0]!} primary={v.primary} secondary={v.secondary} size="small" px={px} gapColor={bg} />
+        <MuscleMap view={v.views[0]!} primary={v.primary} secondary={v.secondary} size="small" px={inner} gapColor={c.tileBg} />
       ) : null}
     </View>
   );
+}
+
+/** Tile for a set of muscles (e.g. a template's primary muscles). */
+export function MuscleTile({ primary, secondary = [], px, label }: { primary: VisualSource['primaryMuscles']; secondary?: VisualSource['secondaryMuscles']; px: number; label: string }) {
+  return <ExerciseTile exercise={{ name: label, slug: null, photoId: null, primaryMuscles: primary, secondaryMuscles: secondary }} px={px} />;
 }
 
 /** Detail header: photo (if any) with the front/back figure beneath. */
@@ -58,6 +64,6 @@ export function ExerciseHero({ exercise, figureHeight = 280 }: { exercise: Visua
 const styles = StyleSheet.create({
   tile: { overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   hero: { gap: space.lg, alignItems: 'stretch' },
-  photo: { width: '100%', aspectRatio: 4 / 3, borderRadius: radius.lg },
+  photo: { width: '100%', aspectRatio: 4 / 3, borderRadius: radius.card },
   pair: { flexDirection: 'row', justifyContent: 'center', gap: space.xl },
 });

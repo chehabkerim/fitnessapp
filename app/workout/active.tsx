@@ -1,11 +1,11 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ActionSheet, Button, EmptyState, IconButton, Screen, Text } from '@/components';
 import { flushNow, useLive, useRepos, type WorkoutDetail } from '@/db';
-import { RestTimerBar } from '@/features/workouts/RestTimerBar';
-import { WorkoutEditor } from '@/features/workouts/WorkoutEditor';
+import { FocusWorkout } from '@/features/active/FocusWorkout';
 import { useNow } from '@/hooks/useNow';
 import { formatElapsed } from '@/lib/format';
 import { useKeepAwakeWhile } from '@/platform/keepAwake';
@@ -22,8 +22,8 @@ export default function ActiveWorkout() {
   if (!detail) {
     return (
       <Screen back={minimise}>
-        <EmptyState title="No workout in progress" body="Start one from the Workouts tab.">
-          <Button label="Go to workouts" onPress={() => router.replace('/workouts')} />
+        <EmptyState title="No workout in progress" body="Start one from the Train tab.">
+          <Button label="Go to Train" onPress={() => router.replace('/workouts')} />
         </EmptyState>
       </Screen>
     );
@@ -35,91 +35,57 @@ function ActiveWorkoutBody({ detail, minimise }: { detail: WorkoutDetail; minimi
   const { c } = useTheme();
   const router = useRouter();
   const repos = useRepos();
-  const active = detail.workout;
+  const insets = useSafeAreaInsets();
+  const w = detail.workout;
   const now = useNow(1000);
-  const [name, setName] = useState(active.name ?? '');
-  const [notes, setNotes] = useState(active.notes ?? '');
   const [menu, setMenu] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState<number | null>(null);
 
   const finish = async (discardIncomplete: boolean) => {
-    const id = active.id;
     const firstEver = repos.workouts.finishedCount() === 0;
-    repos.workouts.finish(id, { discardIncomplete });
+    repos.workouts.finish(w.id, { discardIncomplete });
     repos.appState.update({ restEndsAt: null, restDurationSec: null });
-    const state = repos.appState.get();
-    if (firstEver && state.storagePersistRequestedAt == null) {
+    if (firstEver && repos.appState.get().storagePersistRequestedAt == null) {
       repos.appState.update({ storagePersistRequestedAt: Date.now() });
       void requestPersistentStorage();
     }
     await flushNow();
-    router.replace({ pathname: '/workout/summary', params: { id: String(id) } });
+    router.replace({ pathname: '/workout/summary', params: { id: String(w.id) } });
   };
-
   const onFinish = () => {
-    const incomplete = repos.workouts.incompleteCount(active.id);
+    const incomplete = repos.workouts.incompleteCount(w.id);
     if (incomplete > 0) setConfirmFinish(incomplete);
     else void finish(false);
   };
 
-  const lastDone = detail.entries
-    .flatMap((e) => e.sets.map((s) => ({ s, name: e.exercise.name })))
-    .filter((x) => x.s.completedAt != null)
-    .sort((a, b) => (b.s.completedAt ?? 0) - (a.s.completedAt ?? 0))[0];
-
   return (
-    <Screen
-      back={minimise}
-      right={
-        <View style={styles.headerRight}>
-          <IconButton icon="more" label="Workout options" onPress={() => setMenu(true)} />
-          <Button label="Finish" compact onPress={onFinish} />
+    <View style={[styles.root, { backgroundColor: c.bg, paddingTop: insets.top + space.xs, paddingBottom: insets.bottom }]}>
+      <View style={styles.topBar}>
+        <IconButton icon="down" label="Minimise workout" outlined onPress={minimise} />
+        <View style={styles.center}>
+          <Text variant="overline" color="muted" numberOfLines={1}>
+            {w.name ?? 'Workout'}
+          </Text>
+          <Text style={[styles.elapsed, { color: c.ink }]} numeric accessibilityLabel={`Elapsed ${formatElapsed(w.startedAt, now)}`}>
+            {formatElapsed(w.startedAt, now)}
+          </Text>
         </View>
-      }
-      footer={<RestTimerBar label={lastDone?.name ?? 'your exercise'} />}
-    >
-      <View style={styles.titleBlock}>
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          onBlur={() => repos.workouts.rename(active.id, name)}
-          onSubmitEditing={() => repos.workouts.rename(active.id, name)}
-          placeholder="Workout"
-          placeholderTextColor={c.faint}
-          accessibilityLabel="Workout name"
-          style={[styles.name, { color: c.ink }]}
-          returnKeyType="done"
-        />
-        <Text style={styles.elapsed} numeric accessibilityLabel={`Elapsed ${formatElapsed(active.startedAt, now)}`}>
-          {formatElapsed(active.startedAt, now)}
-        </Text>
+        <Button label="Finish" kind="accent" compact onPress={onFinish} />
       </View>
 
-      <View style={styles.editor}>
-        <WorkoutEditor detail={detail} live />
-      </View>
-
-      <TextInput
-        value={notes}
-        onChangeText={setNotes}
-        onBlur={() => repos.workouts.setNotes(active.id, notes)}
-        placeholder="Notes"
-        placeholderTextColor={c.faint}
-        multiline
-        accessibilityLabel="Workout notes"
-        style={[styles.notes, { color: c.ink, borderColor: c.line }]}
-      />
+      <FocusWorkout detail={detail} onFinish={onFinish} onDiscard={() => setMenu(true)} />
 
       <ActionSheet
         visible={menu}
         onClose={() => setMenu(false)}
-        title="Workout"
+        title="Discard this workout?"
+        message="Its sets are deleted. This can't be undone."
         actions={[
           {
             label: 'Discard workout',
             destructive: true,
             onPress: () => {
-              repos.workouts.discard(active.id);
+              repos.workouts.discard(w.id);
               repos.appState.update({ restEndsAt: null, restDurationSec: null });
               router.replace('/workouts');
             },
@@ -136,15 +102,13 @@ function ActiveWorkoutBody({ detail, minimise }: { detail: WorkoutDetail; minimi
           { label: 'Keep logging', onPress: () => {} },
         ]}
       />
-    </Screen>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: space.xxs },
-  titleBlock: { marginTop: space.xs, marginBottom: space.lg },
-  name: { fontFamily: fonts.display, fontSize: 30, lineHeight: 36, padding: 0, minHeight: 44 },
-  elapsed: { fontFamily: fonts.display, fontSize: 44, lineHeight: 50, marginTop: space.xxs },
-  editor: { marginHorizontal: -space.xs },
-  notes: { marginTop: space.xl, borderWidth: 1, borderRadius: 12, padding: space.sm, minHeight: 88, fontFamily: fonts.body, fontSize: 16, textAlignVertical: 'top' },
+  root: { flex: 1 },
+  topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: space.md, paddingBottom: space.sm, gap: space.xs },
+  center: { flex: 1, alignItems: 'center' },
+  elapsed: { fontFamily: fonts.cond800i, fontSize: 24, lineHeight: 26 },
 });

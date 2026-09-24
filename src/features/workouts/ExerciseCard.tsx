@@ -54,7 +54,7 @@ export function ExerciseCard(p: ExerciseCardProps) {
         </Pressable>
         <Pressable
           style={styles.titleCol}
-          onPress={() => router.push({ pathname: '/workouts/exercise', params: { id: String(ex.id) } })}
+          onPress={() => router.push({ pathname: '/exercises/detail', params: { id: String(ex.id) } })}
           accessibilityRole="link"
           accessibilityLabel={`${ex.name}, open exercise history`}
         >
@@ -125,7 +125,7 @@ export function ExerciseCard(p: ExerciseCardProps) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: radius.lg, borderWidth: 1, overflow: 'hidden' },
+  card: { borderRadius: radius.card, borderWidth: 1, overflow: 'hidden' },
   header: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingLeft: space.sm, paddingRight: space.xxs, paddingVertical: space.sm },
   titleCol: { flex: 1, gap: 2 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 4 },

@@ -20,14 +20,14 @@ const svg = (kind, bg) => {
 const outputs = [
   ['public/icons/icon-192.png', 192, svg('full')],
   ['public/icons/icon-512.png', 512, svg('full')],
-  ['public/icons/maskable-512.png', 512, svg('maskable', '#C4623F')],
-  ['public/icons/apple-touch-icon.png', 180, svg('maskable', '#C4623F')],
+  ['public/icons/maskable-512.png', 512, svg('maskable', '#0E0E10')],
+  ['public/icons/apple-touch-icon.png', 180, svg('maskable', '#0E0E10')],
   ['public/favicon.png', 48, svg('full')],
   ['assets/favicon.png', 48, svg('full')],
-  ['assets/icon.png', 1024, svg('maskable', '#C4623F')],
+  ['assets/icon.png', 1024, svg('maskable', '#0E0E10')],
   ['assets/splash-icon.png', 512, svg('full')],
   ['assets/android-icon-foreground.png', 512, svg('maskable')],
-  ['assets/android-icon-monochrome.png', 512, svg('maskable').replaceAll('#F6F1EA', '#000000')],
+  ['assets/android-icon-monochrome.png', 512, svg('maskable').replaceAll('#39FF14', '#000000')],
 ];
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });

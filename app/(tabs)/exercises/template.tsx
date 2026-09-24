@@ -61,7 +61,7 @@ function TemplateForm({ id, initial }: { id: number | null; initial?: TemplateDe
         value={name}
         onChangeText={setName}
         placeholder="Template name"
-        placeholderTextColor={c.faint}
+        placeholderTextColor={c.muted}
         accessibilityLabel="Template name"
         style={[styles.name, { color: c.ink, borderBottomColor: c.line }]}
       />
@@ -145,7 +145,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.xs },
-  name: { fontFamily: fonts.display, fontSize: 30, lineHeight: 36, borderBottomWidth: 1, paddingVertical: space.xs, minHeight: 48 },
+  name: { fontFamily: fonts.cond800i, fontSize: 30, lineHeight: 36, borderBottomWidth: 1, paddingVertical: space.xs, minHeight: 48 },
   list: { gap: space.sm },
   item: { gap: space.sm },
   targets: { flexDirection: 'row', alignItems: 'flex-end', flexWrap: 'wrap', gap: space.sm },

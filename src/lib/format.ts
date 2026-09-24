@@ -2,6 +2,20 @@ import { addDays, parseLocalDate, weekStart } from './dates';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const FULL_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const FULL_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/** "Thursday 24 September". */
+export function formatFullDate(date: string): string {
+  const d = parseLocalDate(date);
+  return `${FULL_DAYS[d.getDay()]} ${d.getDate()} ${FULL_MONTHS[d.getMonth()]}`;
+}
+
+/** "Thursday 24 Sep". */
+export function formatDayMonth(date: string): string {
+  const d = parseLocalDate(date);
+  return `${FULL_DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+}
 
 /** 83 → "1:23"; 3723 → "1:02:03". */
 export function formatClock(totalSeconds: number): string {

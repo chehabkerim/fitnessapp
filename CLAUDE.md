@@ -1,9 +1,9 @@
 # Plus Ultra — Fitness Tracker (iOS + Android)
 
 ## Product
-"Plus Ultra" is a personal fitness tracker for calories/food, steps, workouts, and body weight. Steps and active energy are read automatically from Apple Health (iOS) and Health Connect (Android). Single user, local-first, no accounts or backend in v1. It should feel like a calm, premium editorial product, not a gamified gym app.
+"Plus Ultra" is a personal fitness tracker for calories/food, steps, workouts, and body weight. Steps and active energy are read automatically from Apple Health (iOS) and Health Connect (Android). Single user, local-first, no accounts or backend in v1. It should feel bold and fast (the "Ignite" direction): a high-contrast training tool that is quick to use at the gym, not a gamified app.
 - Name: "Plus Ultra" is used in app.config (name), the web manifest (`name` and `short_name`), the HTML `<title>`, the splash screen and Settings → About. The name is the only reference: no My Hero Academia artwork, characters, logos, fonts or colour schemes.
-- PR moment: when a set breaks a personal record, a small "Plus Ultra" label in Fraunces italic appears on its own line under the set row's inputs, right-aligned, with a 200ms fade-in and a light haptic. It's terracotta, using #B0532F in light mode for small-text contrast. On the finish summary, the PR section is headed "Plus Ultra". The phrase appears nowhere else.
+- PR moment: when a set breaks a personal record, a purple banner slides in above the set list: "New personal record", then "PLUS ULTRA" in Barlow Condensed 800 italic with a 2.5px black outline, then the record and value. A strong haptic plays (vibrate on Android web), and the set row gets a green "PR" tag. On the finish summary, the records card is headed "Plus Ultra". The phrase appears nowhere else.
 
 ## Tech stack
 - Expo (latest stable SDK) + TypeScript (strict), Expo Router for navigation
@@ -14,7 +14,7 @@
 - Wrap both behind one shared interface in /src/health (e.g. getSteps(date), getStepsRange(start, end), getActiveEnergy(date), requestPermissions(), getPermissionStatus()) so the rest of the app never touches platform-specific code
 - Local storage: Drizzle ORM over SQLite, behind a repository layer in /src/db. Native uses expo-sqlite; web uses sql.js with IndexedDB persistence (see "Web first → Storage").
 - Charts: Phase 1 uses thin line charts drawn with react-native-svg. victory-native (Skia) is revisited in Phase 4; on web, Skia loads CanvasKit, a 7.2 MB wasm file (2.9 MB gzipped).
-- Fonts: @expo-google-fonts/fraunces and @expo-google-fonts/inter
+- Fonts: @expo-google-fonts/barlow-condensed and @expo-google-fonts/barlow
 - Barcode scanning: expo-camera (on web it uses its bundled barcode-detector polyfill, which needs HTTPS and camera permission)
 - Food data: Open Food Facts public API (search + barcode lookup), results cached locally
 - Before installing any package, check its current docs and compatibility with our Expo SDK version. If a library above is deprecated or incompatible, tell me and propose the replacement instead of silently swapping.
@@ -30,15 +30,35 @@
 7. Progress: weekly/monthly charts for calories, steps, weight, workout volume.
 8. Settings: goals, units, health permissions status, export/import JSON, reset data.
 
-## Design direction
-- Editorial minimalism, warm and calm. Generous whitespace, strong typographic hierarchy.
-- Palette: warm off-white (#F6F1EA), ink (#1F1A17), terracotta accent (#C4623F), muted sand (#E4D9CB), soft sage for goal-met states (#7D8F6E).
-- Type: Fraunces for display numbers and headings, Inter for UI and body.
-- Large numerals for key stats. Thin rings and bars, no heavy gradients, no neon, no emoji.
-- Bottom tab bar: Today, Food, Workouts, Progress, Settings.
-- Subtle motion: 150–250ms ease-out, ring fill animation on load, light haptics on key actions.
-- Dark mode with the same warm character: background #1A1512 (deep brown-black, not pure black), ink #F2E9DE, accent #D9774F (terracotta lightened to 5.8:1 on the background).
-- Contrast: #C4623F on #F6F1EA is 3.6:1, and white on #C4623F is 4.1:1. Both pass for large text and graphics but fail AA for normal-size text. Use #C4623F for fills, rings and large numerals. Button backgrounds and small terracotta text in light mode use the deeper #B0532F (5.1:1 with white text).
+## Design direction ("Ignite")
+- Reference mockups: `design/ignite/reference/` (dark and light sheets, plus one crop per screen). Built screenshots: `design/ignite/built/` (regenerate with `node scripts/ignite-screens.mjs` after `npm run build:web` with the server on port 4173).
+- Bold, high-contrast, fast. Big condensed numerals, one neon accent, one purple for primary actions. No gradients, no emoji.
+- Type:
+  - Barlow Condensed 600/700/800/700i/800i for display and all numbers, with tabular numerals.
+  - Barlow 400/500/600/700 for UI and body.
+  - Titles are uppercase condensed 800 italic. Small labels are Barlow 700 uppercase with ~0.12em letter-spacing.
+- Tokens live in `src/theme/tokens.ts`; `src/theme/contrast.test.ts` checks every text/background pair against WCAG AA.
+- Dark (the default for new installs):
+  - Surfaces: bg #0E0E10, surface #17171A, raised #222226, current set row #1D1D21.
+  - Lines: hairline #2E2E33, neutral outline buttons #3A3A40.
+  - Text: #F4F1EA, secondary #A09C94, list text #C9C4BA, "×" #8E8A83 (spec #6E6A64 raised to pass AA).
+  - Accent #39FF14. Completed tick #3DDC84 with a #0E0E10 check.
+  - Danger #FF7A6B.
+- Light:
+  - Surfaces: bg #F3F4F1, cards #FFFFFF, raised #E9ECE7.
+  - Lines: hairline #DDE1DA, outline #C4C9C1.
+  - Text: #0E0E10, secondary #5C6159, list text #343832, "×" #656A62 (spec #959A92 raised to pass AA).
+  - Accent #00A03C, used for fills, borders and large text only. Accent ink #04742E for all small green text.
+  - Danger #B3261E.
+  - Cards and tiles have a 2px accent border. The tick is an accent circle with a white check.
+- Both themes: purple #8E48C0 for filled primary buttons and the PR banner.
+  - Text on purple is #F4F1EA with a 2px black outline (2.5px on the banner's "PLUS ULTRA").
+  - Text under ~20px is never outlined.
+  - The outline goes through `OutlinedText` in /src/platform. Web uses `-webkit-text-stroke` with `paint-order: stroke fill`; native draws eight offset copies behind the fill.
+- Shape: radii are cards 20–22, buttons 14–18, rows 12. Primary buttons are at least 64px tall and every tap target is at least 48px.
+- Motion: 120–200ms, a slight spring on set complete, and the PR banner slides in. Strong haptic on set complete and PR.
+- Tabs: Train, History, Exercises, Settings. Today, Food and Progress stay behind flags in `src/config/features.ts` until their phases.
+- Logging on touch devices uses the in-app keypad (big value boxes, ± chips); desktop types straight into the value boxes.
 - Respect safe areas and Dynamic Type / font scaling.
 
 ## Platform & compliance
@@ -62,16 +82,17 @@
 - `npm run build:web`: static export to `dist/` plus the generated service worker (`dist/sw.js`).
 - `npm run test:e2e`: Playwright against `dist/` (build first). Set `PW_CHROMIUM_PATH` to use a preinstalled Chromium.
 - `npm run db:generate`: new Drizzle migration after a schema change (both engines use it).
+- `node scripts/ignite-screens.mjs`: renders the Ignite screens at 390px in both themes into `design/ignite/built/` (needs `dist/` served on port 4173).
 - Package installs in this environment: `EXPO_OFFLINE=1 npx expo install <pkg>` (the Expo version API is blocked here).
 
 ## Implementation notes (Phase 1)
-- Routes live in `/app`. Records are addressed with query params (`/workouts/exercise?id=3`), not `[id]` segments, so the static export works on any static host and offline without rewrite rules.
+- Routes live in `/app`. Records are addressed with query params (`/exercises/detail?id=3`, `/history/workout?id=5`), not `[id]` segments, so the static export works on any static host and offline without rewrite rules.
 - Tabs use Expo Router's headless tabs (`expo-router/ui`) so the minimised-workout bar can sit above a custom tab bar.
 - Live data: `useLive(selector, deps)` re-runs synchronous repository reads after every write; `useRepos()` for event handlers.
 - Web accessibility state uses RN's `aria-*` props (`aria-checked`, `aria-selected`); `accessibilityState` alone doesn't reach the DOM in react-native-web. Elements that must be skipped by Tab use `tabIndex={-1}`.
 
 ## Roadmap
-- **Phase 1:** foundation + workouts (web-first, phone-first). Other tabs are styled placeholders.
+- **Phase 1:** foundation + workouts (web-first, phone-first), restyled in the Ignite direction. Today, Food and Progress are hidden behind feature flags.
 - **Phase 2:** onboarding + calorie target + body weight.
 - **Phase 3:** food log (Open Food Facts search, barcode scanning, custom foods).
 - **Phase 4:** Today dashboard + progress charts.
@@ -101,8 +122,8 @@
     - A solid filled silhouette with heroic but anatomically plausible proportions: broad shoulders, a clear V-taper, thick arms.
     - Muscles are separated only by thin gaps in the background colour. There are no outlines and no face details; the head is a simple solid shape.
     - The abs have only two simple separations, drawn at large size only.
-  - Colours, light: body #E4D9CB, primary #C4623F, secondary #D19277 (40% of the way towards sand).
-  - Colours, dark: body #3B312A, primary #D9774F, secondary #A15E45.
+  - Colours, dark: body #2A2A2E, primary #39FF14, secondary = accent mixed 45% towards the body.
+  - Colours, light: body #D3D8D0, primary #00A03C, secondary = accent mixed 40% towards the body.
   - Gap colour: always the colour of the surface the figure sits on.
   - Separately fillable regions: upper_chest, chest, front_delts, side_delts, rear_delts, traps, upper_back, lats, biceps (brachialis shares it), triceps, forearms.
     - Lats are two wings either side of the spine, tapering towards the waist; the lower back between them stays body colour.
@@ -165,14 +186,14 @@ Phases 1–4 are built, used and tested as a website first. iOS and Android must
   - In a set row, Tab moves weight → reps → complete.
   - Enter completes the set and moves focus to the next set's weight.
   - Escape closes sheets and menus.
-  - Focus rings are visible (terracotta, 2px).
+  - Focus rings are visible (accent, 2px).
 - Inputs are at least 16px so iOS Safari doesn't zoom when an input is focused. Web gets pointer cursors and subtle hover states.
 
 ### Layout
 - Mobile-first at 390px wide. On wider screens the app sits in a centred column (max 560px) on the warm background, with the tab bar the same width as the column. No multi-column dashboards; it should still feel like the app. Respect `env(safe-area-inset-*)` in standalone PWA mode.
 
 ### PWA
-- `public/manifest.webmanifest` with `display: standalone`, `start_url: /`, `background_color` and `theme_color` #F6F1EA. The dark theme colour (#1A1512) is set with `<meta name="theme-color" media="(prefers-color-scheme: dark)">` in `app/+html.tsx`. That file also holds the manifest link, the apple-touch-icon and `viewport-fit=cover`.
+- `public/manifest.webmanifest` with `display: standalone`, `start_url: /`, `background_color` and `theme_color` #0E0E10 (the app defaults to dark). `app/+html.tsx` sets the same theme colour and holds the manifest link, the apple-touch-icon and `viewport-fit=cover`.
 - Icons come from a placeholder SVG mark in `assets/brand/`, exported to 192, 512, maskable 512, apple-touch 180 and a favicon.
 - A hand-written service worker (no Workbox):
   - Precaches the exported app shell, fonts and WASM so the app opens offline at the gym.

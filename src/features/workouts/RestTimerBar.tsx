@@ -63,14 +63,14 @@ export function RestTimerBar({ label }: { label: string }) {
       accessibilityLabel={over ? 'Rest is over' : `Rest, ${formatClock(left / 1000)} left`}
     >
       <View style={[styles.track, { backgroundColor: c.line }]}>
-        <View style={[styles.fill, { backgroundColor: over ? c.sage : c.accent, width: `${(over ? 1 : progress) * 100}%` }]} />
+        <View style={[styles.fill, { backgroundColor: over ? c.tick : c.accent, width: `${(over ? 1 : progress) * 100}%` }]} />
       </View>
       <View style={styles.row}>
         <View style={styles.flex}>
           <Text variant="overline" color="muted">
             {over ? 'Rest is over' : 'Rest'}
           </Text>
-          <Text style={[styles.clock, { color: over ? c.sage : c.ink }]} numeric accessibilityElementsHidden>
+          <Text style={[styles.clock, { color: over ? c.tick : c.ink }]} numeric accessibilityElementsHidden>
             {formatClock(Math.ceil(left / 1000))}
           </Text>
         </View>
@@ -91,7 +91,7 @@ function Chip({ label, a11y, onPress, strong }: { label: string; a11y: string; o
       accessibilityLabel={a11y}
       style={(s) => [styles.chip, { borderColor: c.line, backgroundColor: strong ? c.bg : 'transparent', opacity: s.pressed ? 0.6 : 1 }]}
     >
-      <Text variant="label" color={strong ? 'accentStrong' : 'ink'} numeric>
+      <Text variant="label" color={strong ? 'accentText' : 'ink'} numeric>
         {label}
       </Text>
     </Pressable>
@@ -104,6 +104,6 @@ const styles = StyleSheet.create({
   fill: { height: 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingTop: space.sm },
   flex: { flex: 1 },
-  clock: { fontFamily: fonts.display, fontSize: 40, lineHeight: 46 },
+  clock: { fontFamily: fonts.cond800i, fontSize: 40, lineHeight: 46 },
   chip: { minHeight: layout.minTap, minWidth: 56, paddingHorizontal: space.sm, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 });

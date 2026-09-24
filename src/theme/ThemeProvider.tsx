@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
 import { useColorScheme } from 'react-native';
 
 import type { ThemePref } from '../lib/domain';
-import { palettes, type Colors } from './tokens';
+import { cardBorderWidth, palettes, type Colors } from './tokens';
 
 interface ThemeValue {
   scheme: 'light' | 'dark';
@@ -13,11 +13,12 @@ interface ThemeValue {
 
 const ThemeContext = createContext<ThemeValue | null>(null);
 
+/** Dark is the default until the stored preference loads. */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const system = useColorScheme();
-  const [pref, setPref] = useState<ThemePref>('system');
-  const scheme = pref === 'system' ? (system === 'dark' ? 'dark' : 'light') : pref;
-  const value = useMemo(() => ({ scheme, c: palettes[scheme], pref, setPref }), [scheme, pref]);
+  const [pref, setPref] = useState<ThemePref>('dark');
+  const scheme = pref === 'system' ? (system === 'light' ? 'light' : 'dark') : pref;
+  const value = useMemo(() => ({ scheme, c: { ...palettes[scheme], cardBorderWidth: cardBorderWidth[scheme] }, pref, setPref }), [scheme, pref]);
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 

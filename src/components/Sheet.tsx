@@ -99,7 +99,7 @@ export function ActionSheet({ visible, onClose, title, message, actions }: { vis
             onClose();
             a.onPress();
           }}
-          style={(state) => [styles.action, { borderColor: c.line, opacity: a.disabled ? 0.4 : state.pressed ? 0.7 : 1, backgroundColor: (state as { hovered?: boolean }).hovered ? c.surfaceAlt : 'transparent' }]}
+          style={(state) => [styles.action, { borderColor: c.line, opacity: a.disabled ? 0.4 : state.pressed ? 0.7 : 1, backgroundColor: (state as { hovered?: boolean }).hovered ? c.raised : 'transparent' }]}
         >
           <Text variant="bodyMedium" color={a.destructive ? 'danger' : 'ink'}>
             {a.label}

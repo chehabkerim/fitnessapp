@@ -1,6 +1,8 @@
 // Web shell integration: page colours follow the theme, and the service worker is registered in production.
-export function applyShellColors(bg: string) {
+export function applyShellColors(bg: string, focus?: string) {
   if (typeof document === 'undefined') return;
+  document.documentElement.style.setProperty('--pu-bg', bg);
+  if (focus) document.documentElement.style.setProperty('--pu-focus', focus);
   document.documentElement.style.backgroundColor = bg;
   document.body.style.backgroundColor = bg;
   document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', bg));

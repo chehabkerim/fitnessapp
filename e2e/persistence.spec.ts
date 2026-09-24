@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { check, closeQuietly, crash, hide, launch, logSet, newProfileDir, openApp, reps, startTemplate, weight } from './helpers';
+import { check, closeQuietly, crash, hide, launch, logSet, newProfileDir, openApp, reps, selectSet, startTemplate, weight } from './helpers';
 import type { BrowserContext } from '@playwright/test';
 
 const EX = 'Incline Dumbbell Bench Press';
@@ -8,10 +8,12 @@ const EX = 'Incline Dumbbell Bench Press';
 /** Reopen the app (same browser profile) and check the logged set is there. */
 async function expectSetKept(ctx: BrowserContext, typedReps?: string) {
   const page = await openApp(ctx, '/workout/active');
+  // The set card opens on the first unfinished set (set 2); set 1 is selected from the set list.
+  if (typedReps) await expect(reps(page, EX, 2)).toHaveValue(typedReps);
+  await expect(check(page, EX, 1)).toHaveAttribute('aria-checked', 'true');
+  await selectSet(page, 1).click();
   await expect(weight(page, EX, 1)).toHaveValue('22.5');
   await expect(reps(page, EX, 1)).toHaveValue('10');
-  await expect(check(page, EX, 1)).toHaveAttribute('aria-checked', 'true');
-  if (typedReps) await expect(reps(page, EX, 2)).toHaveValue(typedReps);
 }
 
 test.describe('kill test: a logged set survives the app being killed', () => {
@@ -79,6 +81,6 @@ test('opens offline once installed by the service worker', async () => {
   await page.waitForTimeout(500);
   await ctx.setOffline(true);
   await page.reload();
-  await expect(page.getByText('Start from a template')).toBeVisible();
+  await expect(page.getByText('Up next')).toBeVisible();
   await ctx.close();
 });

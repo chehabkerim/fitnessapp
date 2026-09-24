@@ -7,7 +7,7 @@ export default function NotFound() {
     <Screen back>
       <EmptyState title="This page doesn't exist">
         <Link href="/workouts">
-          <Text color="accentStrong" variant="bodyMedium">
+          <Text color="accentText" variant="bodyMedium">
             Go to your workouts
           </Text>
         </Link>

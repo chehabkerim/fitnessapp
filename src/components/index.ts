@@ -9,5 +9,5 @@ export { SegmentedControl, Toggle, ListRow, SectionTitle } from './Controls';
 export { Icon, EquipmentGlyph, type IconName } from './Icon';
 export { MuscleMap } from './MuscleMap';
 export { LineChart } from './LineChart';
-export { ExerciseTile, ExerciseHero, usePhotoUrl } from './ExerciseVisual';
+export { ExerciseTile, ExerciseHero, MuscleTile, usePhotoUrl } from './ExerciseVisual';
 export { Placeholder } from './Placeholder';

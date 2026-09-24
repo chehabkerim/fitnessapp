@@ -8,12 +8,12 @@ const config: ExpoConfig = {
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
-  backgroundColor: '#F6F1EA',
+  backgroundColor: '#0E0E10',
   ios: { supportsTablet: false, bundleIdentifier: 'app.plusultra.tracker' },
   android: {
     package: 'app.plusultra.tracker',
     adaptiveIcon: {
-      backgroundColor: '#C4623F',
+      backgroundColor: '#0E0E10',
       foregroundImage: './assets/android-icon-foreground.png',
       monochromeImage: './assets/android-icon-monochrome.png',
     },
@@ -23,8 +23,8 @@ const config: ExpoConfig = {
     favicon: './assets/favicon.png',
     name: 'Plus Ultra',
     shortName: 'Plus Ultra',
-    themeColor: '#F6F1EA',
-    backgroundColor: '#F6F1EA',
+    themeColor: '#0E0E10',
+    backgroundColor: '#0E0E10',
   },
   plugins: [
     'expo-router',
@@ -33,13 +33,13 @@ const config: ExpoConfig = {
       {
         image: './assets/splash-icon.png',
         imageWidth: 120,
-        backgroundColor: '#F6F1EA',
-        dark: { image: './assets/splash-icon.png', backgroundColor: '#1A1512' },
+        backgroundColor: '#0E0E10',
+        dark: { image: './assets/splash-icon.png', backgroundColor: '#0E0E10' },
       },
     ],
     'expo-font',
     'expo-sqlite',
-    ['expo-notifications', { color: '#C4623F' }],
+    ['expo-notifications', { color: '#39FF14' }],
   ],
   experiments: { typedRoutes: true },
 };

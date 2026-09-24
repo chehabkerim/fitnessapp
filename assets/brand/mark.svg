@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Placeholder mark for Plus Ultra: a plus, and a smaller plus beyond it. Original, no third-party artwork. -->
-  <rect width="512" height="512" rx="112" fill="#C4623F"/>
-  <g stroke="#F6F1EA" stroke-linecap="round" fill="none">
+  <!-- Placeholder mark for Plus Ultra (Ignite): a plus, and a smaller plus beyond it. Original, no third-party artwork. -->
+  <rect width="512" height="512" rx="112" fill="#0E0E10"/>
+  <g stroke="#39FF14" stroke-linecap="round" fill="none">
     <path d="M226 150 V338 M132 244 H320" stroke-width="44"/>
     <path d="M370 118 V190 M334 154 H406" stroke-width="24"/>
   </g>

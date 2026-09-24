@@ -20,6 +20,14 @@ const PATHS = {
   repeat: ['M5 11 V9.5 A3 3 0 0 1 8 6.5 H18', 'M15.5 4 L18 6.5 L15.5 9', 'M19 13 V14.5 A3 3 0 0 1 16 17.5 H6', 'M8.5 20 L6 17.5 L8.5 15'],
   camera: ['M4 8.5 H7.5 L9 6 H15 L16.5 8.5 H20 V18.5 H4 Z', 'M12 16 A3 3 0 1 0 12 10 A3 3 0 1 0 12 16 Z'],
   info: ['M12 21 A9 9 0 1 0 12 3 A9 9 0 1 0 12 21 Z', 'M12 11 V16.5', 'M12 7.5 V8'],
+  play: ['M8 5.5 L18.5 12 L8 18.5 Z'],
+  bolt: ['M13.5 3 L5.5 13.5 H11.5 L10.5 21 L18.5 10.5 H12.5 Z'],
+  backspace: ['M9 5.5 H20 V18.5 H9 L3.5 12 Z', 'M11.5 9.5 L16 14', 'M16 9.5 L11.5 14'],
+  arrowRight: ['M4.5 12 H19', 'M13.5 6.5 L19 12 L13.5 17.5'],
+  arrowLeft: ['M19.5 12 H5', 'M10.5 6.5 L5 12 L10.5 17.5'],
+  list: ['M9 6.5 H20', 'M9 12 H20', 'M9 17.5 H20', 'M4.5 6.5 H5', 'M4.5 12 H5', 'M4.5 17.5 H5'],
+  history: ['M12 20.5 A8.5 8.5 0 1 0 12 3.5 A8.5 8.5 0 1 0 12 20.5 Z', 'M12 7.5 V12 L15 14'],
+  train: ['M8 12 H16', 'M5 8 H8 V16 H5 Z', 'M16 8 H19 V16 H16 Z', 'M3 10.5 V13.5', 'M21 10.5 V13.5'],
   // tabs
   today: ['M12 20.5 A8.5 8.5 0 1 0 12 3.5 A8.5 8.5 0 1 0 12 20.5 Z', 'M12 7.5 V12 L15 14'],
   food: ['M4 11 H20', 'M5 11 A7 7 0 0 0 19 11', 'M9 18.5 H15'],
@@ -38,6 +46,8 @@ export function Icon({ name, size = 24, color, strokeWidth = 1.5 }: { name: Icon
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" accessibilityElementsHidden importantForAccessibility="no">
       {name === 'more'
         ? [6, 12, 18].map((x) => <Circle key={x} cx={x} cy={12} r={1.4} fill={stroke} />)
+        : name === 'play' || name === 'bolt'
+          ? PATHS[name].map((d) => <Path key={d} d={d} fill={stroke} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />)
         : PATHS[name].map((d) => <Path key={d} d={d} stroke={stroke} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />)}
     </Svg>
   );

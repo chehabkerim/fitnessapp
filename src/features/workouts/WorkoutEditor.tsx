@@ -2,33 +2,19 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ActionSheet, Button, Sheet, Text } from '@/components';
-import { useLive, useRepos, type Repos, type SetRow as SetRowData, type WorkoutDetail } from '@/db';
+import { useLive, useRepos, type SetRow as SetRowData, type WorkoutDetail } from '@/db';
 import { prFlags } from '@/lib/prs';
-import { resolveRestSec, startRest } from '@/lib/rest';
+import { resolveRestSec } from '@/lib/rest';
 import { haptics } from '@/platform/haptics';
 import { restAlerts } from '@/platform/restAlerts';
-import { restCue } from '@/platform/restCue';
 import { space } from '@/theme';
 import { ExerciseCard } from './ExerciseCard';
+import { beginRest } from './rest';
 import { ExerciseInfoSheet } from './ExerciseInfoSheet';
 import { ExercisePickerSheet } from './ExercisePickerSheet';
 import type { SetRowHandle } from './SetRow';
 
 const REST_CHOICES = [45, 60, 90, 120, 150, 180];
-
-/** Starts the rest timer for an exercise; the first time, asks (via onAsk) before requesting notification permission. */
-function beginRest(repos: Repos, entry: WorkoutDetail['entries'][number], onAsk: () => void) {
-  const sec = resolveRestSec(entry.we.restSec, entry.exercise.defaultRestSec, repos.settings.get().defaultRestSec);
-  const r = startRest(Date.now(), sec);
-  restCue.unlock();
-  repos.appState.update({ restEndsAt: r.endsAt, restDurationSec: r.durationSec });
-  if (!repos.appState.get().restNotificationAsked) {
-    void restAlerts.permission().then((p) => {
-      if (p === 'default') onAsk();
-      else repos.appState.update({ restNotificationAsked: true });
-    });
-  }
-}
 
 /**
  * The set table for a whole workout: used by the active workout (with rest timer) and by the edit mode of a

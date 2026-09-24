@@ -30,7 +30,7 @@ export function ExercisePickerSheet({ visible, onClose, onPick, addTo }: { visib
           value={q}
           onChangeText={setQ}
           placeholder="Search exercises"
-          placeholderTextColor={c.faint}
+          placeholderTextColor={c.muted}
           accessibilityLabel="Search exercises"
           style={[styles.searchInput, { color: c.ink }]}
           autoCorrect={false}
@@ -63,8 +63,8 @@ export function ExercisePickerSheet({ visible, onClose, onPick, addTo }: { visib
                         {e.primaryMuscles.map((m) => MUSCLE_LABELS[m]).join(', ')}
                       </Text>
                     </View>
-                    <View style={[styles.box, on ? { backgroundColor: c.sage, borderColor: c.sage } : { borderColor: c.line }]}>
-                      {on && <Icon name="check" size={16} color={c.onSage} strokeWidth={2} />}
+                    <View style={[styles.box, on ? { backgroundColor: c.tick, borderColor: c.tick } : { borderColor: c.line }]}>
+                      {on && <Icon name="check" size={16} color={c.onTick} strokeWidth={2} />}
                     </View>
                   </Pressable>
                 );

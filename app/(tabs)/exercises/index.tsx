@@ -7,7 +7,7 @@ import { useLive, useRepos, type ExerciseRow } from '@/db';
 import { EQUIPMENT_LABELS, MUSCLE_LABELS } from '@/lib/domain';
 import { fonts, radius, space, useTheme } from '@/theme';
 
-export default function Library() {
+export default function Exercises() {
   const router = useRouter();
   const repos = useRepos();
   const { c } = useTheme();
@@ -18,15 +18,29 @@ export default function Library() {
   const empty = groups.every((g) => g.exercises.length === 0);
 
   return (
-    <Screen back title="Library" right={<Button label="New" icon="plus" kind="ghost" compact onPress={() => router.push('/exercise/edit')} />}>
+    <Screen title="Exercises" inTabs right={<Button label="New exercise" icon="plus" kind="ghost" compact onPress={() => router.push('/exercise/edit')} />}>
       <View style={[styles.search, { backgroundColor: c.surface, borderColor: c.line }]}>
         <Icon name="search" size={20} color={c.muted} />
-        <TextInput value={q} onChangeText={setQ} placeholder="Search exercises" placeholderTextColor={c.faint} accessibilityLabel="Search exercises" style={[styles.input, { color: c.ink }]} autoCorrect={false} />
+        <TextInput value={q} onChangeText={setQ} placeholder="Search exercises" placeholderTextColor={c.muted} accessibilityLabel="Search exercises" style={[styles.input, { color: c.ink }]} autoCorrect={false} />
       </View>
       {q && empty && <Text color="muted" style={styles.none}>No exercises match “{q}”.</Text>}
       {groups.map((g) => (
         <View key={g.key}>
-          <SectionTitle>{g.title}</SectionTitle>
+          <SectionTitle
+            right={
+              g.templateId != null ? (
+                <Button
+                  label="Edit template"
+                  a11yLabel={`Edit template ${g.title}`}
+                  kind="link"
+                  compact
+                  onPress={() => router.push({ pathname: '/exercises/template', params: { id: String(g.templateId) } })}
+                />
+              ) : undefined
+            }
+          >
+            {g.title}
+          </SectionTitle>
           {g.exercises.length === 0 ? (
             <Text color="muted">Exercises you create appear here.</Text>
           ) : (
@@ -34,13 +48,16 @@ export default function Library() {
               {g.exercises.map((e, i) => (
                 <View key={e.id}>
                   {i > 0 && <Divider inset={space.md + 56 + space.sm} />}
-                  <LibraryRow exercise={e} onPress={() => router.push({ pathname: '/workouts/exercise', params: { id: String(e.id) } })} />
+                  <LibraryRow exercise={e} onPress={() => router.push({ pathname: '/exercises/detail', params: { id: String(e.id) } })} />
                 </View>
               ))}
             </Card>
           )}
         </View>
       ))}
+      <View style={styles.newTemplate}>
+        <Button label="New template" icon="plus" kind="secondary" onPress={() => router.push({ pathname: '/exercises/template', params: { id: 'new' } })} />
+      </View>
       {archived.length > 0 && (
         <View style={styles.archived}>
           <Button label={showArchived ? 'Hide archived' : `Archived (${archived.length})`} kind="ghost" compact onPress={() => setShowArchived((v) => !v)} />
@@ -84,6 +101,7 @@ const styles = StyleSheet.create({
   none: { marginTop: space.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.md, paddingVertical: space.sm },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap', marginTop: 2 },
+  newTemplate: { marginTop: space.xl },
   archived: { marginTop: space.xl, gap: space.xs, alignItems: 'flex-start' },
   archivedRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, alignSelf: 'stretch' },
 });

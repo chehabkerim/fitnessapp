@@ -12,14 +12,13 @@ export default function Root({ children }: PropsWithChildren) {
         <title>Plus Ultra</title>
         <meta name="description" content="A calm, local-first training log." />
         <link rel="manifest" href="/manifest.webmanifest" />
-        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F6F1EA" />
-        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1A1512" />
+        <meta name="theme-color" content="#0E0E10" />
         <link rel="icon" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Plus Ultra" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: css }} />
       </head>
@@ -29,8 +28,7 @@ export default function Root({ children }: PropsWithChildren) {
 }
 
 const css = `
-:root { --pu-bg: #F6F1EA; --pu-focus: #B0532F; }
-@media (prefers-color-scheme: dark) { :root { --pu-bg: #1A1512; --pu-focus: #D9774F; } }
+:root { --pu-bg: #0E0E10; --pu-focus: #39FF14; }
 html, body { background-color: var(--pu-bg); overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
 *:focus { outline: none; }
 *:focus-visible { outline: 2px solid var(--pu-focus) !important; outline-offset: 2px; border-radius: 6px; }

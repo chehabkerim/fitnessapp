@@ -130,7 +130,7 @@ export default function ExerciseDetail() {
             <View key={s.workoutId}>
               {i > 0 && <Divider inset={space.md} />}
               <View style={styles.session}>
-                <Text variant="label" color="muted" onPress={() => router.push({ pathname: '/workouts/history', params: { id: String(s.workoutId) } })}>
+                <Text variant="label" color="muted" onPress={() => router.push({ pathname: '/history/workout', params: { id: String(s.workoutId) } })}>
                   {formatDay(s.date)}
                 </Text>
                 {s.sets.map((x, n) => (
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   facts: { gap: space.sm, marginTop: space.lg },
   photoBtn: { marginTop: space.md, alignSelf: 'flex-start' },
   prGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  prCard: { flexBasis: '47%', flexGrow: 1, borderWidth: 1, borderRadius: radius.lg, padding: space.md, gap: space.xxs },
-  prValue: { fontFamily: fonts.display, fontSize: 28, lineHeight: 34 },
+  prCard: { flexBasis: '47%', flexGrow: 1, borderWidth: 1, borderRadius: radius.card, padding: space.md, gap: space.xxs },
+  prValue: { fontFamily: fonts.cond800i, fontSize: 28, lineHeight: 34 },
   session: { padding: space.md, gap: 2 },
 });

@@ -1,10 +1,13 @@
-// Import individual weights so only these six font files ship.
-import { Fraunces_500Medium } from '@expo-google-fonts/fraunces/500Medium';
-import { Fraunces_500Medium_Italic } from '@expo-google-fonts/fraunces/500Medium_Italic';
-import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces/600SemiBold';
-import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
-import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
-import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
+// Import individual weights so only these nine font files ship.
+import { Barlow_400Regular } from '@expo-google-fonts/barlow/400Regular';
+import { Barlow_500Medium } from '@expo-google-fonts/barlow/500Medium';
+import { Barlow_600SemiBold } from '@expo-google-fonts/barlow/600SemiBold';
+import { Barlow_700Bold } from '@expo-google-fonts/barlow/700Bold';
+import { BarlowCondensed_600SemiBold } from '@expo-google-fonts/barlow-condensed/600SemiBold';
+import { BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed/700Bold';
+import { BarlowCondensed_700Bold_Italic } from '@expo-google-fonts/barlow-condensed/700Bold_Italic';
+import { BarlowCondensed_800ExtraBold } from '@expo-google-fonts/barlow-condensed/800ExtraBold';
+import { BarlowCondensed_800ExtraBold_Italic } from '@expo-google-fonts/barlow-condensed/800ExtraBold_Italic';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -21,7 +24,17 @@ import { layout, ThemeProvider, useTheme } from '@/theme';
 void SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({ Fraunces_500Medium, Fraunces_600SemiBold, Fraunces_500Medium_Italic, Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
+  const [loaded, error] = useFonts({
+    Barlow_400Regular,
+    Barlow_500Medium,
+    Barlow_600SemiBold,
+    Barlow_700Bold,
+    BarlowCondensed_600SemiBold,
+    BarlowCondensed_700Bold,
+    BarlowCondensed_700Bold_Italic,
+    BarlowCondensed_800ExtraBold,
+    BarlowCondensed_800ExtraBold_Italic,
+  });
 
   useEffect(() => {
     if (loaded || error) void SplashScreen.hideAsync().catch(() => {});
@@ -53,7 +66,7 @@ export default function RootLayout() {
 /** Centred app column (max 560px) on the warm background; phone-first. */
 function Shell({ children }: { children: React.ReactNode }) {
   const { c, scheme } = useTheme();
-  useEffect(() => applyShellColors(c.bg), [c.bg]);
+  useEffect(() => applyShellColors(c.bg, c.focus), [c.bg, c.focus]);
   return (
     <View style={[styles.fill, { backgroundColor: c.bg }]}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
