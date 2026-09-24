@@ -10,7 +10,7 @@ A personal fitness tracker for calories/food, steps, workouts, and body weight. 
 - iOS health: @kingstinct/react-native-healthkit (with its Expo config plugin)
 - Android health: react-native-health-connect + expo-health-connect config plugin
 - Wrap both behind one shared interface in /src/health (e.g. getSteps(date), getStepsRange(start, end), getActiveEnergy(date), requestPermissions(), getPermissionStatus()) so the rest of the app never touches platform-specific code
-- Local storage: Drizzle ORM over SQLite, behind a repository layer in /src/db. Native uses expo-sqlite. The web engine is still to be decided (see "Web first → Storage").
+- Local storage: Drizzle ORM over SQLite, behind a repository layer in /src/db. Native uses expo-sqlite; web uses sql.js with IndexedDB persistence (see "Web first → Storage").
 - Charts: victory-native (Skia-based)
 - Fonts: @expo-google-fonts/fraunces and @expo-google-fonts/inter
 - Barcode scanning: expo-camera (on web it uses its bundled barcode-detector polyfill, which needs HTTPS and camera permission)
@@ -52,15 +52,37 @@ A personal fitness tracker for calories/food, steps, workouts, and body weight. 
 - Accessible: labels, 44pt tap targets, WCAG AA contrast.
 - After each phase: run type-check and tests, confirm the web static export builds, fix all errors, then summarise what was built and exactly what I should test, using the checklist in "Web first → Device testing" (plus native devices once native builds are in scope).
 
-## Web first (Phase 1)
-Phase 1 is built, used and tested as a website before the native apps. iOS and Android must still type-check, compile and run from the same codebase.
+## Roadmap
+- **Phase 1:** foundation + workouts (web-first, phone-first). Other tabs are styled placeholders.
+- **Phase 2:** onboarding + calorie target + body weight.
+- **Phase 3:** food log (Open Food Facts search, barcode scanning, custom foods).
+- **Phase 4:** Today dashboard + progress charts.
+- **Phase 5:** native iOS/Android builds + Apple Health / Health Connect steps and workout write-back.
 
-### Storage
-- Feature code imports repositories from /src/db only (e.g. `foodLogRepo`, `workoutRepo`, `weightRepo`). It never imports the Drizzle client or a storage engine. There is one Drizzle schema and one set of migrations for all platforms.
-- Finding (Expo SDK 57, expo-sqlite 57.x): expo-sqlite web support is marked **alpha** in the docs. It needs `SharedArrayBuffer`, so every response, including the dev server's, must send `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy` (`credentialless` or `require-corp`). It stores data in OPFS with exclusive access handles, so a second tab or window of the app can't open the database at the same time. Also, `credentialless` isn't supported in Safari, and `require-corp` would block cross-origin Open Food Facts product images. **Not treated as production-ready.**
-- **Proposed web engine (awaiting owner approval, do not implement yet):** Drizzle's `sql-js` driver (sql.js, SQLite compiled to WASM, in memory). After each write transaction (debounced), the database is saved to IndexedDB, and it is loaded from there on startup. The same migration SQL is applied in the browser by a small shared migrator. The Web Locks API keeps one active tab, and any other tab shows "open in another tab". The app calls `navigator.storage.persist()`. This needs no special hosting headers. New dependency: `sql.js`.
-- Alternative (not recommended): hand-written IndexedDB repositories without SQL on web. Every repository would then have two implementations.
-- Safari can clear site storage for sites that haven't been used in 7 days and aren't installed. Installed home-screen apps are exempt. So the app encourages installing the PWA and shows the date of the last JSON export in Settings.
+## Web first
+Phases 1–4 are built, used and tested as a website first. iOS and Android must still type-check, compile and run from the same codebase.
+
+### Storage (decided)
+- Feature code imports repositories from /src/db only (e.g. `workoutRepo`, `exerciseRepo`, `settingsRepo`). It never imports the Drizzle client or a storage engine.
+- Engines: native uses `drizzle-orm/expo-sqlite`; web uses `drizzle-orm/sql-js` (sql.js, SQLite compiled to WASM, in memory) with persistence to IndexedDB. The client is chosen by `client.native.ts` / `client.web.ts`.
+- Why not expo-sqlite on web: on SDK 57 its web support is marked **alpha**. It needs COOP/COEP headers for `SharedArrayBuffer`, and it keeps an exclusive OPFS lock, so only one tab can open the database. Safari lacks COEP `credentialless`, and `require-corp` would block Open Food Facts images.
+- One schema and one set of migrations for both engines:
+  - `drizzle-kit generate` (driver `expo`) produces `drizzle/migrations.js`. It is bundled on both platforms (`.sql` inlined with babel-plugin-inline-import).
+  - A small shared migrator in /src/db/migrate.ts calls `dialect.migrate`. This is exactly what Drizzle's Expo migrator does, minus its React hook.
+  - Verified with drizzle-orm 0.45.3 and sql.js 1.14.2. Migrations are idempotent, incremental migrations apply to a restored database, and export → re-import round-trips.
+- Use the core query builder only (`select`/`insert`/`update`/`delete`, joins, `returning`). **Do not use the relational `db.query` API.** In drizzle-orm 0.45.3 the sql-js session drops the relational result mapper, so `db.query` returns unmapped rows on web. The client is created without the `schema` option, so `db.query` can't be used by mistake.
+- SQLite: run `PRAGMA foreign_keys = ON` on every open. Bundled versions are 3.49+ on both engines. Timestamps are stored as integer epoch ms, dates as `YYYY-MM-DD` text, and weights in kg (converted for display).
+- The sql.js WASM (`sql.js/dist/sql-wasm-browser.wasm`) is bundled with the app as a local asset and precached by the service worker. No CDN.
+- Web persistence rules (never lose a logged set):
+  - Every repository write marks the database dirty. A set change saves with a short trailing debounce (≤ 250ms, max wait 1s).
+  - Force an immediate save on `visibilitychange` → hidden and on `pagehide`. iOS can kill a backgrounded page without warning.
+  - A save exports the database and writes it to IndexedDB in one transaction, then waits for `complete`.
+  - On startup, load from IndexedDB, then run migrations and seed.
+- Web Locks API: one tab owns the database. Another tab shows "open in another tab" with a "Use here instead" action; the tab that loses the lock stops writing and shows the same screen.
+- Call `navigator.storage.persist()` after the first workout is saved. Record it in `app_state`.
+- Safari can clear storage for sites that haven't been used in 7 days and aren't installed; installed home-screen apps are exempt. So:
+  - Settings shows an install prompt (Android: `beforeinstallprompt`; iOS: Share → Add to Home Screen instructions) and the date of the last JSON export.
+  - After the third finished workout, show a gentle nudge once, only if the app isn't running standalone and there has been no export in the last 14 days.
 
 ### Health on web
 - The /src/health web implementation returns status `unavailable` (reason: `platform`). Its reads return `null`, and requesting permissions does nothing.
@@ -72,6 +94,7 @@ Phase 1 is built, used and tested as a website before the native apps. iOS and A
   - Native: a local notification.
   - Web: on the first rest timer, show the same explanatory copy, then request Notification permission. When the tab is hidden and the timer ends, notify through the service worker registration.
   - If permission is denied or notifications are unsupported, show the countdown in the tab title ("0:45 · Rest") and restore the title afterwards.
+  - When the timer ends in the foreground, call `navigator.vibrate` where supported (Android; iPhone web apps can't vibrate). If the Settings toggle "Rest timer sound" is on (off by default), also play a short soft tone generated with Web Audio. The audio context is unlocked on the tap that starts the rest.
   - Known limitation: mobile browsers suspend or throttle hidden pages. iOS only allows web notifications for installed home-screen apps. So background alerts on phones are best-effort without a push server. They are reliable on desktop, and keep-awake during a workout helps at the gym.
 - Keep-awake during an active workout: Screen Wake Lock API on web, re-acquired on `visibilitychange`, silently skipped where unsupported. Native uses expo-keep-awake.
 - Gestures are shortcuts only. Every swipe or long-press action has a visible control. Each row has a menu with delete and a warm-up toggle. On web, a delete icon button also appears on hover and focus.
@@ -96,10 +119,7 @@ Phase 1 is built, used and tested as a website before the native apps. iOS and A
 ### Deployment
 - `npx expo export -p web` produces a static site in `dist/`.
 - Simplest host: EAS Hosting (`eas deploy`), on the same Expo account as EAS Build, with headers set in the app config. Netlify, Vercel and Cloudflare Pages also work with `dist/`.
-- Headers:
-  - With the proposed sql.js engine, no special headers are required.
-  - If expo-sqlite web is chosen instead, send COOP `same-origin` and COEP on every response.
-  - Always serve the service worker with `Cache-Control: no-cache`. HTTPS is required (all hosts above provide it).
+- Headers: sql.js needs no COOP/COEP headers. Serve the service worker with `Cache-Control: no-cache`. HTTPS is required (all hosts above provide it).
 
 ### Device testing (after each phase)
 - **Phone browser** (iOS Safari and Android Chrome):
@@ -115,10 +135,13 @@ Phase 1 is built, used and tested as a website before the native apps. iOS and A
   - Opens offline.
   - Data is kept between launches and is separate from the browser tab where the platform separates it.
   - Notification permission flow and rest-timer alerts.
+  - Kill test: log a set, immediately swipe the app away in the app switcher, reopen, and confirm the set is there. Repeat while typing in a set.
+  - Android: vibration when rest ends in the foreground.
 - **Desktop browser** (Chrome, Safari, Firefox):
   - Centred column layout.
   - Full keyboard flow in set logging (Tab / Enter / Escape).
   - Delete icon on hover and focus, and the row menu.
   - Tab-title countdown when notifications are denied.
+  - Rest-end tone when enabled in Settings, and silence when it's off.
   - A second tab shows "open in another tab".
   - JSON export and import round-trip.
