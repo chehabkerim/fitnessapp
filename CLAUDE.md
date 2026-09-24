@@ -6,12 +6,12 @@ A personal fitness tracker for calories/food, steps, workouts, and body weight. 
 ## Tech stack
 - Expo (latest stable SDK) + TypeScript (strict), Expo Router for navigation
 - Web target via react-native-web with Expo Router static output (`web.output: "static"`). Web is the primary test target for Phase 1 (see "Web first" below); iOS and Android build from the same codebase.
-- Development builds via EAS Build (expo-dev-client). This app will NOT run in Expo Go because of native health modules.
-- iOS health: @kingstinct/react-native-healthkit (with its Expo config plugin)
-- Android health: react-native-health-connect + expo-health-connect config plugin
+- Phases 1–4 run in Expo Go on a phone (no custom native modules). From Phase 5, development builds via EAS Build (expo-dev-client) are required because of the native health modules.
+- iOS health (Phase 5): @kingstinct/react-native-healthkit (with its Expo config plugin). v16 also needs react-native-nitro-modules as a peer dependency.
+- Android health (Phase 5): react-native-health-connect v4, using its own config plugin. `expo-health-connect` is deprecated and was merged into it, so don't install it.
 - Wrap both behind one shared interface in /src/health (e.g. getSteps(date), getStepsRange(start, end), getActiveEnergy(date), requestPermissions(), getPermissionStatus()) so the rest of the app never touches platform-specific code
 - Local storage: Drizzle ORM over SQLite, behind a repository layer in /src/db. Native uses expo-sqlite; web uses sql.js with IndexedDB persistence (see "Web first → Storage").
-- Charts: victory-native (Skia-based)
+- Charts: victory-native (Skia-based) is the plan of record, but it's under review for web. Skia on web loads CanvasKit, a 7.2 MB wasm file (2.9 MB gzipped). The alternative is thin charts drawn with react-native-svg.
 - Fonts: @expo-google-fonts/fraunces and @expo-google-fonts/inter
 - Barcode scanning: expo-camera (on web it uses its bundled barcode-detector polyfill, which needs HTTPS and camera permission)
 - Food data: Open Food Facts public API (search + barcode lookup), results cached locally
@@ -23,7 +23,7 @@ A personal fitness tracker for calories/food, steps, workouts, and body weight. 
 2. Today dashboard: calorie ring (eaten vs target, optionally adding active calories burned from health data), macro bars, steps vs daily goal (live from health data, refreshed on app foreground and pull-to-refresh), today's workout summary, quick-add buttons.
 3. Food log: meals (breakfast, lunch, dinner, snacks); Open Food Facts search; barcode scan; custom foods; serving size editing; recents and favourites; copy yesterday's meal.
 4. Steps: synced automatically; daily goal; week/month history chart. If permission is denied or unavailable, show a clear state explaining how to enable it in Settings, with manual entry as a fallback.
-5. Workouts: exercise library (~40 common exercises by muscle group), log sets × reps × weight, templates, rest timer (with haptics and a local notification if backgrounded), personal records per exercise, estimated calories burned. Optionally write completed workouts to Apple Health / Health Connect (user toggle).
+5. Workouts: a hand-authored exercise library (see "Exercise library"), log sets × reps × weight, templates, rest timer (with haptics and a local notification if backgrounded), personal records per exercise, estimated calories burned. Optionally write completed workouts to Apple Health / Health Connect (user toggle).
 6. Body: weight log with 7-day moving average trend; optional measurements.
 7. Progress: weekly/monthly charts for calories, steps, weight, workout volume.
 8. Settings: goals, units, health permissions status, export/import JSON, reset data.
@@ -35,7 +35,8 @@ A personal fitness tracker for calories/food, steps, workouts, and body weight. 
 - Large numerals for key stats. Thin rings and bars, no heavy gradients, no neon, no emoji.
 - Bottom tab bar: Today, Food, Workouts, Progress, Settings.
 - Subtle motion: 150–250ms ease-out, ring fill animation on load, light haptics on key actions.
-- Dark mode with the same warm character (deep brown-black, not pure black).
+- Dark mode with the same warm character: background #1A1512 (deep brown-black, not pure black), ink #F2E9DE, accent #D9774F (terracotta lightened to 5.8:1 on the background).
+- Contrast: #C4623F on #F6F1EA is 3.6:1, and white on #C4623F is 4.1:1. Both pass for large text and graphics but fail AA for normal-size text. Use #C4623F for fills, rings and large numerals. Button backgrounds and small terracotta text in light mode use the deeper #B0532F (5.1:1 with white text).
 - Respect safe areas and Dynamic Type / font scaling.
 
 ## Platform & compliance
@@ -58,6 +59,38 @@ A personal fitness tracker for calories/food, steps, workouts, and body weight. 
 - **Phase 3:** food log (Open Food Facts search, barcode scanning, custom foods).
 - **Phase 4:** Today dashboard + progress charts.
 - **Phase 5:** native iOS/Android builds + Apple Health / Health Connect steps and workout write-back.
+
+## Exercise library
+- Hand-authored. The app ships no third-party exercise data, illustrations or photos. You can add custom exercises in the app.
+- Seeded once from /src/db/seed, gated by `app_state.seed_version`, so a seeded template or exercise you delete stays deleted. There are 12 exercises and two editable, deletable templates:
+  - **Back & Chest:** Incline Dumbbell Bench Press, Flat Chest Press, Lat Pulldown, Close Grip Row, Upper Back Row.
+  - **Arms:** Tricep Pushdown, Weighted Dips, Lateral Raise, Shoulder Press, Hammer Curl, Preacher Curl, Bicep Curl.
+  - Every template exercise is 3 sets × 8–12 reps.
+- Exercise fields:
+  - `primary_muscles` / `secondary_muscles`: JSON arrays of MuscleMap region keys.
+  - `equipment`: dumbbell, machine, cable, ez_bar, bodyweight, barbell, kettlebell or other.
+  - `log_type`: weight_reps, reps, bodyweight_added or duration. With `bodyweight_added`, reps are required and the weight input is optional and labelled "added".
+  - `load_mode`: total or per_dumbbell. With per_dumbbell, the input is labelled "kg each" / "lb each", volume counts the weight ×2, and PRs show the weight as entered ("22.5 kg each").
+  - Also `default_rest_sec`, `cues` (JSON array of short lines) and `photo_id`.
+- Rest time priority: `workout_exercises.rest_sec` → `template_exercises.rest_sec` → `exercises.default_rest_sec` → `settings.default_rest_sec`. The template value is copied into the workout exercise when a workout starts from a template.
+- Library grouping is derived, not stored. Exercises are grouped under the templates they belong to, in template order, plus "My exercises" for those in no template. There are no muscle or equipment filter chips.
+- Visuals: every exercise visual goes through `getExerciseVisual(exercise, size)` in /src/lib/media, in this order:
+  1. Your own photo.
+  2. An illustration (the mapping is empty for now).
+  3. The MuscleMap.
+- MuscleMap (/src/components/MuscleMap):
+  - An original front and back SVG figure; the design source is in /design/muscle-map.
+  - Accurate, fillable regions: upper_chest, chest, front_delts, side_delts, rear_delts, traps, upper_back (upper and mid back), lats, biceps (brachialis shares it), triceps, forearms.
+  - Simpler fillable regions for custom exercises: abs, obliques, lower_back, glutes, quads, hamstrings, calves.
+  - Primary muscles fill with the accent colour and secondary with sand (dark mode uses #5C4B3D). Everything else is a 1px ink outline at low opacity.
+  - Small size is an upper-body crop of the front or back view: whichever has more primary regions, then more secondary, then front. Large size shows front and back side by side.
+- Equipment glyphs: original 24px line icons with a 1.5px stroke at every size.
+- Photos:
+  - Never store image data in SQLite. On web the photos live in a separate IndexedDB store; on native, in the file system. Both are keyed by `photo_id`.
+  - Each photo is kept at two sizes: a thumbnail (~160px) and a detail image (~800px wide). WebP where the browser can encode it; Safari can't, so it falls back to JPEG.
+  - JSON export and import include photos as base64.
+  - A photo replaces the MuscleMap as the thumbnail. The detail screen shows the photo with the MuscleMap beneath it.
+  - Native photo capture needs expo-image-picker and expo-image-manipulator, so it is deferred to Phase 5.
 
 ## Web first
 Phases 1–4 are built, used and tested as a website first. iOS and Android must still type-check, compile and run from the same codebase.
@@ -109,7 +142,7 @@ Phases 1–4 are built, used and tested as a website first. iOS and Android must
 - Mobile-first at 390px wide. On wider screens the app sits in a centred column (max 560px) on the warm background, with the tab bar the same width as the column. No multi-column dashboards; it should still feel like the app. Respect `env(safe-area-inset-*)` in standalone PWA mode.
 
 ### PWA
-- `public/manifest.webmanifest` with `display: standalone`, `start_url: /`, `background_color` and `theme_color` #F6F1EA. The dark theme colour (#17120F, deep brown-black) is set with `<meta name="theme-color" media="(prefers-color-scheme: dark)">` in `app/+html.tsx`. That file also holds the manifest link, the apple-touch-icon and `viewport-fit=cover`.
+- `public/manifest.webmanifest` with `display: standalone`, `start_url: /`, `background_color` and `theme_color` #F6F1EA. The dark theme colour (#1A1512) is set with `<meta name="theme-color" media="(prefers-color-scheme: dark)">` in `app/+html.tsx`. That file also holds the manifest link, the apple-touch-icon and `viewport-fit=cover`.
 - Icons come from a placeholder SVG mark in `assets/brand/`, exported to 192, 512, maskable 512, apple-touch 180 and a favicon.
 - A hand-written service worker (no Workbox):
   - Precaches the exported app shell, fonts and WASM so the app opens offline at the gym.
@@ -143,5 +176,6 @@ Phases 1–4 are built, used and tested as a website first. iOS and Android must
   - Delete icon on hover and focus, and the row menu.
   - Tab-title countdown when notifications are denied.
   - Rest-end tone when enabled in Settings, and silence when it's off.
+  - Exercise photo: add one, check it replaces the thumbnail, then confirm it survives export → reset → import.
   - A second tab shows "open in another tab".
   - JSON export and import round-trip.
