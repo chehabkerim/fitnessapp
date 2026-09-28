@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react';
 
-/** Current time, refreshed every `intervalMs` while `active`. Display only; logic uses timestamps. */
-export function useNow(intervalMs = 1000, active = true): number {
+import { useScreenFocused } from './useScreenFocused';
+
+/**
+ * Current time, refreshed every `intervalMs` while `active` and the screen is focused (a hidden screen
+ * catches up when it's shown again). Display only; logic uses timestamps.
+ */
+export function useNow(intervalMs = 1000, activeProp = true): number {
+  const active = useScreenFocused() && activeProp;
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (!active) return;

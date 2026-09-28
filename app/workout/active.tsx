@@ -3,11 +3,9 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ActionSheet, Button, EmptyState, IconButton, Screen, Text } from '@/components';
+import { ActionSheet, Button, ElapsedText, EmptyState, IconButton, Screen, Text } from '@/components';
 import { flushNow, useLive, useRepos, type WorkoutDetail } from '@/db';
 import { FocusWorkout } from '@/features/active/FocusWorkout';
-import { useNow } from '@/hooks/useNow';
-import { formatElapsed } from '@/lib/format';
 import { useKeepAwakeWhile } from '@/platform/keepAwake';
 import { requestPersistentStorage } from '@/platform/storage';
 import { fonts, space, useTheme } from '@/theme';
@@ -37,7 +35,6 @@ function ActiveWorkoutBody({ detail, minimise }: { detail: WorkoutDetail; minimi
   const repos = useRepos();
   const insets = useSafeAreaInsets();
   const w = detail.workout;
-  const now = useNow(1000);
   const [menu, setMenu] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState<number | null>(null);
 
@@ -66,9 +63,7 @@ function ActiveWorkoutBody({ detail, minimise }: { detail: WorkoutDetail; minimi
           <Text variant="overline" color="muted" numberOfLines={1}>
             {w.name ?? 'Workout'}
           </Text>
-          <Text style={[styles.elapsed, { color: c.ink }]} numeric accessibilityLabel={`Elapsed ${formatElapsed(w.startedAt, now)}`}>
-            {formatElapsed(w.startedAt, now)}
-          </Text>
+          <ElapsedText startedAt={w.startedAt} style={[styles.elapsed, { color: c.ink }]} label />
         </View>
         <Button label="Finish" kind="accent" compact onPress={onFinish} />
       </View>

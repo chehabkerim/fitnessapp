@@ -82,13 +82,14 @@
 - `npm run build:web`: static export to `dist/` plus the generated service worker (`dist/sw.js`).
 - `npm run test:e2e`: Playwright against `dist/` (build first). Set `PW_CHROMIUM_PATH` to use a preinstalled Chromium.
 - `npm run db:generate`: new Drizzle migration after a schema change (both engines use it).
+- `npm run build:preview`: the app as one self-contained page (`dist-preview/plus-ultra.html`) for the private claude.ai preview: scripts, fonts and sql.js inlined (WASM where allowed, asm.js fallback), no service worker.
 - `node scripts/ignite-screens.mjs`: renders the Ignite screens at 390px in both themes into `design/ignite/built/` (needs `dist/` served on port 4173).
 - Package installs in this environment: `EXPO_OFFLINE=1 npx expo install <pkg>` (the Expo version API is blocked here).
 
 ## Implementation notes (Phase 1)
 - Routes live in `/app`. Records are addressed with query params (`/exercises/detail?id=3`, `/history/workout?id=5`), not `[id]` segments, so the static export works on any static host and offline without rewrite rules.
 - Tabs use Expo Router's headless tabs (`expo-router/ui`) so the minimised-workout bar can sit above a custom tab bar.
-- Live data: `useLive(selector, deps)` re-runs synchronous repository reads after every write; `useRepos()` for event handlers.
+- Live data: `useLive(selector, deps)` re-runs synchronous repository reads after every write, but only on the focused screen (others catch up when refocused), and keeps the previous result when it's structurally equal so unaffected components don't re-render. `useRepos()` for event handlers (doesn't re-render on writes). Keep per-second clocks in small components (`ElapsedText`) so they don't re-render whole screens.
 - Web accessibility state uses RN's `aria-*` props (`aria-checked`, `aria-selected`); `accessibilityState` alone doesn't reach the DOM in react-native-web. Elements that must be skipped by Tab use `tabIndex={-1}`.
 
 ## Roadmap

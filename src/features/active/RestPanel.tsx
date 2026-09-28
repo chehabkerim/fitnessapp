@@ -97,7 +97,7 @@ export function RestPanel({ label, next, onFinished }: { label: string; next: st
 function Chip({ label, a11y, onPress }: { label: string; a11y: string; onPress(): void }) {
   const { c } = useTheme();
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={a11y} style={(s) => [styles.chip, { backgroundColor: c.raised, opacity: s.pressed ? 0.6 : 1 }]}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={a11y} style={(s) => [styles.chip, { backgroundColor: s.pressed ? c.outline : c.raised, transform: [{ scale: s.pressed ? 0.96 : 1 }] }]}>
       <Text style={[styles.chipText, { color: c.ink }]} numeric>
         {label}
       </Text>

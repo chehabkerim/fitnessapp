@@ -38,6 +38,9 @@ const scripts = [...html.matchAll(/<script[^>]*src="([^"]+)"[^>]*><\/script>/g)]
 });
 if (scripts.length === 0) throw new Error('No scripts found in the exported index.html');
 
+// sql.js WASM, base64: used when the host allows WASM (src/db/sqljs.preview.ts falls back to asm.js).
+const wasm = readFileSync(join(ROOT, 'node_modules/sql.js/dist/sql-wasm-browser.wasm')).toString('base64');
+
 const styles = [...html.matchAll(/<style[^>]*>[\s\S]*?<\/style>/g)].map(([s]) => s).join('\n');
 
 // Runs before the app:
@@ -65,13 +68,21 @@ const page = `<title>Plus Ultra</title>
 ${styles}
 <style>
   :root { color-scheme: dark; }
-  html, body { height: 100%; background: #0E0E10; }
+  html, body { height: 100%; background: #0E0E10; -webkit-tap-highlight-color: transparent; }
+  html { touch-action: manipulation; }
+  /* Press feedback eases back instead of snapping (web only; native uses the same pressed styles). */
+  [role="button"], [role="tab"], [role="checkbox"], [role="radio"] { transition: transform 90ms ease-out, opacity 90ms ease-out, background-color 90ms ease-out; }
+  @media (prefers-reduced-motion: reduce) { [role="button"], [role="tab"], [role="checkbox"], [role="radio"] { transition: none; } }
+  *:focus { outline: none; }
+  *:focus-visible { outline: 2px solid #39FF14; outline-offset: 2px; }
+  input { font-size: 16px; }
   body { overflow: hidden; }
   #root { display: flex; height: 100%; flex: 1; }
 </style>
 <noscript>Plus Ultra needs JavaScript.</noscript>
 <div id="root"></div>
 <script>${shim}</script>
+<script>globalThis.__PU_SQL_WASM = ${JSON.stringify(wasm)};</script>
 ${scripts.map((s) => `<script>${s}</script>`).join('\n')}
 `;
 

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Animated, AppState, Easing, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Icon, Text } from '@/components';
+import { flushNow } from '@/db';
 import { adjustText, applyKey } from '@/lib/keypad';
 import { nativeDriver } from '@/platform/animation';
 import { haptics } from '@/platform/haptics';
@@ -47,17 +48,65 @@ function KeypadBody(p: KeypadProps) {
     Animated.timing(slide, { toValue: 1, duration: 160, easing: Easing.out(Easing.cubic), useNativeDriver: nativeDriver }).start();
   }, [slide]);
 
+  // The digit shows at once; the save (which re-renders the workout screen) follows a frame later,
+  // coalescing fast taps. Anything pending is written on close, field switch and when the app is hidden.
+  const onChangeRef = useRef(p.onChange);
+  useEffect(() => {
+    onChangeRef.current = p.onChange;
+  });
+  const pending = useRef<string | null>(null);
+  const [writer] = useState(() => {
+    let scheduled = false;
+    const flush = () => {
+      scheduled = false;
+      const v = pending.current;
+      pending.current = null;
+      if (v != null) onChangeRef.current(v);
+    };
+    return {
+      flush,
+      schedule() {
+        if (scheduled) return;
+        scheduled = true;
+        // After the next paint where frames run; the timer covers pages where they don't.
+        requestAnimationFrame(() => setTimeout(() => scheduled && flush(), 0));
+        setTimeout(() => scheduled && flush(), 60);
+      },
+    };
+  });
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active' && pending.current != null) {
+        writer.flush();
+        void flushNow();
+      }
+    });
+    return () => {
+      sub.remove();
+      writer.flush();
+    };
+  }, [writer]);
+
   const set = (next: string) => {
     textRef.current = next;
     freshRef.current = false;
     setText(next);
-    p.onChange(next);
+    pending.current = next;
+    writer.schedule();
     haptics.selection();
+  };
+  const done = () => {
+    writer.flush();
+    p.onDone();
+  };
+  const switchField = () => {
+    writer.flush();
+    p.onSwitch?.();
   };
 
   return (
     <View style={styles.fill}>
-      <Pressable style={[StyleSheet.absoluteFill, { backgroundColor: c.scrim }]} onPress={p.onDone} accessibilityLabel="Close keypad" accessibilityRole="button" />
+      <Pressable style={[StyleSheet.absoluteFill, { backgroundColor: c.scrim }]} onPress={done} accessibilityLabel="Close keypad" accessibilityRole="button" />
       <View style={styles.anchor} pointerEvents="box-none">
         <Animated.View style={[styles.sheet, { backgroundColor: c.surface, borderColor: c.cardBorder, paddingBottom: insets.bottom + space.md, transform: [{ translateY: slide.interpolate({ inputRange: [0, 1], outputRange: [80, 0] }) }] }]} accessibilityViewIsModal>
           <View style={[styles.grabber, { backgroundColor: c.outline }]} />
@@ -82,7 +131,7 @@ function KeypadBody(p: KeypadProps) {
                 onPress={() => set(adjustText(textRef.current, d))}
                 accessibilityRole="button"
                 accessibilityLabel={`${d > 0 ? 'Add' : 'Subtract'} ${Math.abs(d)}`}
-                style={(s) => [styles.chip, { borderColor: c.outline, opacity: s.pressed ? 0.6 : 1 }]}
+                style={(s) => [styles.chip, { borderColor: c.outline, backgroundColor: s.pressed ? c.raised : 'transparent', transform: [{ scale: s.pressed ? 0.95 : 1 }] }]}
               >
                 <Text style={[styles.chipText, { color: c.ink }]} numeric>
                   {d > 0 ? `+${d}` : `−${-d}`}
@@ -100,7 +149,7 @@ function KeypadBody(p: KeypadProps) {
                   onPress={() => set(applyKey(textRef.current, k, freshRef.current, p.decimal))}
                   accessibilityRole="button"
                   accessibilityLabel={k === 'back' ? 'Delete' : k === '.' ? 'Decimal point' : k}
-                  style={(s) => [styles.key, { backgroundColor: c.raised, opacity: disabled ? 0.3 : s.pressed ? 0.6 : 1 }]}
+                  style={(s) => [styles.key, { backgroundColor: s.pressed ? c.outline : c.raised, opacity: disabled ? 0.3 : 1, transform: [{ scale: s.pressed ? 0.95 : 1 }] }]}
                 >
                   {k === 'back' ? <Icon name="backspace" size={26} color={c.ink} /> : <Text style={[styles.keyText, { color: c.ink }]}>{k}</Text>}
                 </Pressable>
@@ -113,13 +162,13 @@ function KeypadBody(p: KeypadProps) {
                 kind="secondary"
                 label={p.switchDirection === 'back' ? `← ${p.switchLabel}` : `${p.switchLabel} →`}
                 a11yLabel={`Switch to ${p.switchLabel}`}
-                onPress={p.onSwitch}
+                onPress={switchField}
                 style={styles.flex}
               />
             ) : (
               <View style={styles.flex} />
             )}
-            <Button label="Done" onPress={p.onDone} style={styles.flex} />
+            <Button label="Done" onPress={done} style={styles.flex} />
           </View>
         </Animated.View>
       </View>

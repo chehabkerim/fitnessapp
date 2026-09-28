@@ -30,6 +30,11 @@ export default function Root({ children }: PropsWithChildren) {
 const css = `
 :root { --pu-bg: #0E0E10; --pu-focus: #39FF14; }
 html, body { background-color: var(--pu-bg); overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+/* No double-tap zoom, so taps fire straight away (pinch zoom still works). */
+html { touch-action: manipulation; }
+/* Press feedback eases back instead of snapping (web only; native uses the same pressed styles). */
+[role="button"], [role="tab"], [role="checkbox"], [role="radio"] { transition: transform 90ms ease-out, opacity 90ms ease-out, background-color 90ms ease-out; }
+@media (prefers-reduced-motion: reduce) { [role="button"], [role="tab"], [role="checkbox"], [role="radio"] { transition: none; } }
 *:focus { outline: none; }
 *:focus-visible { outline: 2px solid var(--pu-focus) !important; outline-offset: 2px; border-radius: 6px; }
 input { font-size: 16px; }

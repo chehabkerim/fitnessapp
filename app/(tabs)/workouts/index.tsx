@@ -2,14 +2,14 @@ import { useRouter } from 'expo-router';
 import { useSyncExternalStore } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Button, Card, Icon, MuscleTile, Screen, Text } from '@/components';
+import { Button, Card, ElapsedText, Icon, MuscleTile, Screen, Text } from '@/components';
 import { useLive, useRepos, type TemplateDetail } from '@/db';
 import { formatVolumeIn } from '@/features/workouts/format';
 import { useStartWorkout } from '@/features/workouts/useStartWorkout';
 import { useNow } from '@/hooks/useNow';
 import { toLocalDate } from '@/lib/dates';
 import type { Muscle } from '@/lib/domain';
-import { formatElapsed, formatFullDate } from '@/lib/format';
+import { formatFullDate } from '@/lib/format';
 import { shouldShowInstallNudge } from '@/lib/nudge';
 import { lastDoneLabel, orderByUpNext, weekTotals } from '@/lib/train';
 import { unitLabel } from '@/lib/units';
@@ -34,7 +34,7 @@ export default function Train() {
   const units = useLive((r) => r.settings.get().units);
   const state = useLive((r) => r.appState.get());
   const standalone = useSyncExternalStore(install.subscribe, install.isStandalone, () => true);
-  const now = useNow(active ? 1000 : 60_000);
+  const now = useNow(60_000);
   const today = toLocalDate(new Date(now));
 
   const ordered = orderByUpNext(
@@ -77,9 +77,7 @@ export default function Train() {
                 {active.name ?? 'Workout'}
               </Text>
             </View>
-            <Text style={[styles.elapsed, { color: c.ink }]} numeric>
-              {formatElapsed(active.startedAt, now)}
-            </Text>
+            <ElapsedText startedAt={active.startedAt} style={[styles.elapsed, { color: c.ink }]} />
             <Icon name="play" size={22} color={c.accent} />
           </Card>
         </Pressable>

@@ -10,6 +10,7 @@ import { MOBILE_ONLY_NOTE, type HealthStatus } from '@/health/types';
 import type { ThemePref, Units } from '@/lib/domain';
 import { restAlerts } from '@/platform/restAlerts';
 import type { AlertPermission } from '@/platform/types';
+import { restCue } from '@/platform/restCue';
 import { space, useTheme } from '@/theme';
 
 const REST = [60, 90, 120, 180];
@@ -63,7 +64,10 @@ export default function Settings() {
           <ListRow
             label="Rest timer sound"
             detail="A soft tone when rest ends, while the app is open"
-            right={<Toggle value={settings.restToneEnabled} onChange={(v) => repos.settings.update({ restToneEnabled: v })} label="Rest timer sound" />}
+            right={<Toggle value={settings.restToneEnabled} onChange={(v) => {
+                  if (v) restCue.unlock(); // unlock audio on this tap so the tone can play later
+                  repos.settings.update({ restToneEnabled: v });
+                }} label="Rest timer sound" />}
           />
         </View>
         <Divider inset={space.md} />

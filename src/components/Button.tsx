@@ -43,7 +43,7 @@ export function Button({ label, kind = 'primary', icon, loading, compact, disabl
         styles.base,
         text ? styles.text : compact ? styles.compact : primary ? styles.primary : styles.regular,
         { backgroundColor: primary ? c.purple : 'transparent', borderColor: border, borderWidth: text ? 0 : 1.5 },
-        { opacity: disabled ? 0.45 : state.pressed ? 0.8 : (state as { hovered?: boolean }).hovered ? 0.9 : 1, transform: [{ scale: state.pressed && primary ? 0.98 : 1 }] },
+        { opacity: disabled ? 0.45 : state.pressed ? 0.8 : (state as { hovered?: boolean }).hovered ? 0.9 : 1, transform: [{ scale: state.pressed && !text ? 0.97 : 1 }] },
         style,
       ]}
       {...rest}
