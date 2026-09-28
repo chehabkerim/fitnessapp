@@ -19,7 +19,8 @@ const config: ExpoConfig = {
     },
   },
   web: {
-    output: 'static',
+    // The single-file preview (`npm run build:preview`) is a client-rendered page; the real site is static.
+    output: process.env.PLUS_ULTRA_PREVIEW === '1' ? 'single' : 'static',
     favicon: './assets/favicon.png',
     name: 'Plus Ultra',
     shortName: 'Plus Ultra',
