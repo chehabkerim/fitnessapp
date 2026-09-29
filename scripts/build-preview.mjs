@@ -68,13 +68,13 @@ const page = `<title>Plus Ultra</title>
 ${styles}
 <style>
   :root { color-scheme: dark; }
-  html, body { height: 100%; background: #0E0E10; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--pu-bg, #0E0E10); -webkit-tap-highlight-color: transparent; }
   html { touch-action: manipulation; }
   /* Press feedback eases back instead of snapping (web only; native uses the same pressed styles). */
   [role="button"], [role="tab"], [role="checkbox"], [role="radio"] { transition: transform 90ms ease-out, opacity 90ms ease-out, background-color 90ms ease-out; }
   @media (prefers-reduced-motion: reduce) { [role="button"], [role="tab"], [role="checkbox"], [role="radio"] { transition: none; } }
   *:focus { outline: none; }
-  *:focus-visible { outline: 2px solid #39FF14; outline-offset: 2px; }
+  *:focus-visible { outline: 2px solid var(--pu-focus, #39FF14); outline-offset: 2px; }
   input { font-size: 16px; }
   body { overflow: hidden; }
   #root { display: flex; height: 100%; flex: 1; }

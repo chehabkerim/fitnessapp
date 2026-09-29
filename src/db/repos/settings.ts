@@ -10,7 +10,7 @@ export function settingsRepo({ db, changed }: RepoCtx) {
       if (!row) throw new Error('Settings row missing');
       return row;
     },
-    update(patch: Partial<Pick<SettingsRow, 'units' | 'theme' | 'defaultRestSec' | 'restToneEnabled'>>) {
+    update(patch: Partial<Pick<SettingsRow, 'units' | 'theme' | 'colorScheme' | 'defaultRestSec' | 'restToneEnabled'>>) {
       db.update(settings).set({ ...patch, updatedAt: Date.now() }).where(eq(settings.id, 1)).run();
       changed();
     },

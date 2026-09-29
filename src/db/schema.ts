@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { check, index, integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
-import { EQUIPMENT, LOAD_MODES, LOG_TYPES, type Muscle } from '../lib/domain';
+import { COLOR_SCHEMES, EQUIPMENT, LOAD_MODES, LOG_TYPES, type Muscle } from '../lib/domain';
 
 // Timestamps are epoch ms; dates are local YYYY-MM-DD; weights are kg.
 const now = sql`(unixepoch('subsec') * 1000)`;
@@ -16,6 +16,7 @@ export const settings = sqliteTable(
     id: integer('id').primaryKey(),
     units: text('units', { enum: ['metric', 'imperial'] }).notNull().default('metric'),
     theme: text('theme', { enum: ['system', 'light', 'dark'] }).notNull().default('system'),
+    colorScheme: text('color_scheme', { enum: COLOR_SCHEMES }).notNull().default('neon'),
     defaultRestSec: integer('default_rest_sec').notNull().default(90),
     restToneEnabled: integer('rest_tone_enabled', { mode: 'boolean' }).notNull().default(false),
     ...timestamps,

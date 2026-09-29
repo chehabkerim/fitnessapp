@@ -73,7 +73,7 @@ export function RestPanel({ label, next, onFinished }: { label: string; next: st
         {formatClock(Math.ceil(left / 1000))}
       </Text>
       <View style={[styles.track, { backgroundColor: c.raised }]}>
-        <View style={[styles.fill, { backgroundColor: c.accent, width: `${(over ? 0 : progress) * 100}%` }]} />
+        <View style={[styles.fill, { backgroundColor: c.accentFill, width: `${(over ? 0 : progress) * 100}%` }]} />
       </View>
       <View style={styles.row}>
         <Chip label="−15s" a11y="Subtract 15 seconds" onPress={() => set(adjustRest(rest, -15, Date.now()))} />

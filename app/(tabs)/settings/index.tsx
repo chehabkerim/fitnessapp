@@ -10,6 +10,7 @@ import { MOBILE_ONLY_NOTE, type HealthStatus } from '@/health/types';
 import type { ThemePref, Units } from '@/lib/domain';
 import { restAlerts } from '@/platform/restAlerts';
 import type { AlertPermission } from '@/platform/types';
+import { SchemePicker } from '@/features/settings/SchemePicker';
 import { restCue } from '@/platform/restCue';
 import { space, useTheme } from '@/theme';
 
@@ -18,7 +19,7 @@ const REST = [60, 90, 120, 180];
 export default function Settings() {
   const router = useRouter();
   const repos = useRepos();
-  const { setPref } = useTheme();
+  const { setPref, setColorScheme } = useTheme();
   const settings = useLive((r) => r.settings.get());
   const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
   const [alerts, setAlerts] = useState<AlertPermission | null>(null);
@@ -39,8 +40,21 @@ export default function Settings() {
       />
 
       <SectionTitle>Appearance</SectionTitle>
+      <Text variant="label" color="muted" style={styles.hint}>
+        Colour
+      </Text>
+      <SchemePicker
+        value={settings.colorScheme}
+        onChange={(colorScheme) => {
+          setColorScheme(colorScheme);
+          repos.settings.update({ colorScheme });
+        }}
+      />
+      <Text variant="label" color="muted" style={styles.modeLabel}>
+        Mode
+      </Text>
       <SegmentedControl<ThemePref>
-        label="Appearance"
+        label="Mode"
         value={settings.theme}
         options={[{ value: 'system', label: 'System' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }]}
         onChange={(theme) => {
@@ -111,6 +125,7 @@ export default function Settings() {
 
 const styles = StyleSheet.create({
   hint: { marginBottom: space.sm },
+  modeLabel: { marginTop: space.lg, marginBottom: space.sm },
   card: { marginTop: space.md },
   pad: { paddingHorizontal: space.md },
 });

@@ -19,6 +19,9 @@ export type LoadMode = (typeof LOAD_MODES)[number];
 
 export type Units = 'metric' | 'imperial';
 export type ThemePref = 'system' | 'light' | 'dark';
+/** Colour schemes (Settings → Appearance). Purple stays the action colour in every scheme. */
+export const COLOR_SCHEMES = ['neon', 'ultraviolet', 'volt', 'mono', 'coral'] as const;
+export type ColorScheme = (typeof COLOR_SCHEMES)[number];
 
 export const MUSCLE_LABELS: Record<Muscle, string> = {
   upper_chest: 'Upper chest', chest: 'Chest', front_delts: 'Front delts', side_delts: 'Side delts', rear_delts: 'Rear delts',

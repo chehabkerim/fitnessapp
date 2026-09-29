@@ -1,71 +1,25 @@
-// Ignite design tokens. Every text/background pair is checked against WCAG AA in src/theme/contrast.test.ts.
+// Ignite design tokens. Colours come from the colour schemes (./schemes): one token object per
+// scheme × mode, all checked against WCAG AA in src/theme/contrast.test.ts.
 
-import { mix } from '../lib/contrast';
+import { COLOR_SCHEMES, type ColorScheme } from '../lib/domain';
+import type { Mode } from '../lib/theme';
+import { buildColors } from './schemes';
 
-const DARK_ACCENT = '#39FF14';
-const LIGHT_ACCENT = '#00A03C';
-const DARK_FIGURE_BODY = '#2A2A2E';
-const LIGHT_FIGURE_BODY = '#D3D8D0';
-
-export const palettes = {
-  dark: {
-    bg: '#0E0E10',
-    surface: '#17171A',
-    raised: '#222226', // inputs, keypad keys, value boxes
-    current: '#1D1D21', // current set row
-    line: '#2E2E33', // hairlines, card borders (1px)
-    outline: '#3A3A40', // neutral outline buttons
-    ink: '#F4F1EA',
-    muted: '#A09C94',
-    listText: '#C9C4BA',
-    times: '#8E8A83', // "×" separator (spec #6E6A64 lightened to pass AA on raised)
-    accent: DARK_ACCENT, // fills, outlines, progress, highlights
-    accentText: DARK_ACCENT, // small green text
-    purple: '#8E48C0',
-    onPurple: '#F4F1EA',
-    tick: '#3DDC84',
-    onTick: '#0E0E10',
-    danger: '#FF7A6B',
-    scrim: 'rgba(0,0,0,0.6)',
-    focus: DARK_ACCENT,
-    cardBorder: '#2E2E33',
-    tileBg: '#1D1D21',
-    figureBody: DARK_FIGURE_BODY,
-    figurePrimary: DARK_ACCENT,
-    figureSecondary: mix(DARK_ACCENT, DARK_FIGURE_BODY, 0.45),
-  },
-  light: {
-    bg: '#F3F4F1',
-    surface: '#FFFFFF',
-    raised: '#E9ECE7',
-    current: '#FFFFFF',
-    line: '#DDE1DA',
-    outline: '#C4C9C1',
-    ink: '#0E0E10',
-    muted: '#5C6159',
-    listText: '#343832',
-    times: '#656A62', // "×" separator (spec #959A92 darkened to pass AA on raised)
-    accent: LIGHT_ACCENT,
-    accentText: '#04742E', // accent mixed 30% toward #0E0E10: all small green text
-    purple: '#8E48C0',
-    onPurple: '#F4F1EA',
-    tick: LIGHT_ACCENT,
-    onTick: '#FFFFFF',
-    danger: '#B3261E',
-    scrim: 'rgba(14,14,16,0.45)',
-    focus: '#04742E',
-    cardBorder: LIGHT_ACCENT, // light cards and tiles have a 2px accent border
-    tileBg: '#E9ECE7',
-    figureBody: LIGHT_FIGURE_BODY,
-    figurePrimary: LIGHT_ACCENT,
-    figureSecondary: mix(LIGHT_ACCENT, LIGHT_FIGURE_BODY, 0.4),
-  },
-} as const;
-
-export type ColorKey = keyof (typeof palettes)['dark'];
+export type ColorKey = keyof ReturnType<typeof buildColors>;
 export type Colors = { [K in ColorKey]: string } & { cardBorderWidth: number };
 
 export const cardBorderWidth = { dark: 1, light: 2 } as const;
+
+/** Every scheme × mode, built once. */
+export const themes = Object.fromEntries(
+  COLOR_SCHEMES.map((scheme) => [
+    scheme,
+    {
+      dark: { ...buildColors(scheme, 'dark'), cardBorderWidth: cardBorderWidth.dark },
+      light: { ...buildColors(scheme, 'light'), cardBorderWidth: cardBorderWidth.light },
+    },
+  ]),
+) as Record<ColorScheme, Record<Mode, Colors>>;
 
 export const space = { xxs: 4, xs: 8, sm: 12, md: 16, lg: 20, xl: 24, xxl: 32, xxxl: 40, huge: 56 } as const;
 export const radius = { row: 12, sm: 10, md: 14, button: 16, card: 20, xl: 22, pill: 999 } as const;

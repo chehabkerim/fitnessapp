@@ -192,6 +192,22 @@ describe('persistence', () => {
     expect(r.exercises.bySlug('incline_db_bench_press')!.cues).toHaveLength(4);
   });
 
+  it('keeps the colour scheme in exports; older exports without it import as Neon', async () => {
+    const { r } = await setup();
+    expect(r.settings.get().colorScheme).toBe('neon');
+    r.settings.update({ colorScheme: 'ultraviolet' });
+    const tables = JSON.parse(JSON.stringify(r.data.exportTables()));
+    expect(tables.settings[0].colorScheme).toBe('ultraviolet');
+
+    r.data.resetAll();
+    r.data.importTables(validateExport({ format: 'plus-ultra', version: 1, exportedAt: 'now', tables, photos: {} }));
+    expect(r.settings.get().colorScheme).toBe('ultraviolet');
+
+    delete tables.settings[0].colorScheme; // an export from before schemes existed
+    r.data.importTables(validateExport({ format: 'plus-ultra', version: 1, exportedAt: 'now', tables, photos: {} }));
+    expect(r.settings.get().colorScheme).toBe('neon');
+  });
+
   it('rejects files that are not exports', () => {
     expect(() => validateExport({ hello: 1 })).toThrow("isn't a Plus Ultra export");
     expect(() => validateExport({ format: 'plus-ultra', version: 99, tables: {} })).toThrow('newer version');

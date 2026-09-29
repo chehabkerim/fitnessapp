@@ -65,11 +65,11 @@ export default function RootLayout() {
 
 /** Centred app column (max 560px) on the warm background; phone-first. */
 function Shell({ children }: { children: React.ReactNode }) {
-  const { c, scheme } = useTheme();
-  useEffect(() => applyShellColors(c.bg, c.focus), [c.bg, c.focus]);
+  const { c, mode } = useTheme();
+  useEffect(() => applyShellColors(c.bg, c.focus, mode), [c.bg, c.focus, mode]);
   return (
     <View style={[styles.fill, { backgroundColor: c.bg }]}>
-      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
       <View style={[styles.column, { backgroundColor: c.bg }]}>{children}</View>
     </View>
   );
@@ -78,8 +78,10 @@ function Shell({ children }: { children: React.ReactNode }) {
 /** Applies the stored appearance preference once the database is open. */
 function ThemeSync() {
   const pref = useLive((r) => r.settings.get().theme);
-  const { setPref } = useTheme();
+  const colorScheme = useLive((r) => r.settings.get().colorScheme);
+  const { setPref, setColorScheme } = useTheme();
   useEffect(() => setPref(pref), [pref, setPref]);
+  useEffect(() => setColorScheme(colorScheme), [colorScheme, setColorScheme]);
   return null;
 }
 

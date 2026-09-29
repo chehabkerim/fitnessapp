@@ -43,9 +43,21 @@ Compare what you see with `design/ignite/reference/` (the mockups) and `design/i
 - [ ] Light: white cards with a green 2px border; small green text is the darker green.
 - [ ] The installed app's status bar and splash are dark (#0E0E10).
 
+### Colour schemes (Settings → Appearance)
+- [ ] The Colour row shows five cards: Neon, Ultraviolet, Volt, Mono, Coral. Swipe it sideways to reach the last ones. Each card previews that scheme's background, accent and the purple button.
+- [ ] Tapping a card recolours the whole app at once, with no reload. The selected card is outlined in its accent and has a check.
+- [ ] Try each scheme in Dark and Light (the Mode control below). In every one, all text is easy to read, including small accent text like "SET 2 OF 3", NOW and "+ Add set".
+- [ ] Purple buttons and the PLUS ULTRA banner stay the same purple in every scheme.
+- [ ] Volt in Light mode: the current set row is filled volt with dark text; volt never appears as text or thin outlines (those use a darker olive).
+- [ ] Ultraviolet in Light mode has a faint violet tint rather than the neutral grey.
+- [ ] The installed app's status bar or browser toolbar colour follows the scheme and mode.
+- [ ] The scheme survives a reload and is included in Settings → Data export and import. The app icon doesn't change.
+- [ ] With VoiceOver or TalkBack, the cards read as "Ultraviolet colour scheme, selected" and so on.
+
 ## Still required from earlier phases
 
 - [ ] Kill test: log a set, immediately swipe the app away in the app switcher, reopen: the set is there. Repeat while typing in a set with the keypad.
+- [ ] Log a set and immediately pull to refresh (or close the tab and reopen it): the set is still there.
 - [ ] Data persists after reload and between launches of the installed app.
 - [ ] The screen stays on during a workout (wake lock).
 - [ ] Rest timer while the screen stays on, and when switching apps (installed app: notification; otherwise the tab-title countdown).

@@ -44,6 +44,19 @@ test.describe('kill test: a logged set survives the app being killed', () => {
     await closeQuietly(ctx);
   });
 
+  test('reloaded straight after logging, mid-typing (before the save could commit)', async () => {
+    const ctx = await launch(newProfileDir());
+    const page = await openApp(ctx);
+    await startTemplate(page, 'Back & Chest');
+    await page.waitForTimeout(1200); // let the start of the workout save, so only the new set is at risk
+    await logSet(page, EX, 1, '22.5', '10');
+    await reps(page, EX, 2).fill('9');
+    await page.reload(); // Chrome drops an uncommitted IndexedDB write on unload; the snapshot keeps it
+    await page.close();
+    await expectSetKept(ctx, '9');
+    await closeQuietly(ctx);
+  });
+
   test('page closed straight after logging (pagehide)', async () => {
     const profile = newProfileDir();
     const ctx = await launch(profile);

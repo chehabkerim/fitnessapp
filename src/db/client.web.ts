@@ -42,9 +42,45 @@ function acquireLock(opts: { ifAvailable?: boolean; steal?: boolean }): Promise<
   });
 }
 
+// Emergency snapshot. Chrome drops an IndexedDB write that hasn't committed when the page unloads
+// (reload, closing the tab, navigating away), so a change made just before that would be lost.
+// On pagehide with unsaved changes, the database is also written synchronously to localStorage;
+// the next start prefers it and moves it into IndexedDB. Any normal save made after it removes it.
+const SNAPSHOT_KEY = 'plus-ultra-unsaved';
+
+function writeSnapshot(bytes: Uint8Array): boolean {
+  try {
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    localStorage.setItem(SNAPSHOT_KEY, btoa(bin));
+    return true;
+  } catch {
+    return false; // storage full or unavailable: the IndexedDB save below is still attempted
+  }
+}
+
+function readSnapshot(): Uint8Array | null {
+  try {
+    const b64 = localStorage.getItem(SNAPSHOT_KEY);
+    return b64 ? Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0)) : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearSnapshot() {
+  try {
+    localStorage.removeItem(SNAPSHOT_KEY);
+  } catch {
+    // unavailable: nothing was written either
+  }
+}
+
 async function openOwned(held: Held): Promise<OpenResult> {
   const SQL = await loadSqlJs();
-  const saved = await idbGet<Uint8Array>('sqlite', 'main');
+  // A snapshot only exists when the last session ended before its changes reached IndexedDB.
+  const snapshot = readSnapshot();
+  const saved = snapshot ?? (await idbGet<Uint8Array>('sqlite', 'main'));
   const raw: Database = saved ? new SQL.Database(saved) : new SQL.Database();
   raw.run('PRAGMA foreign_keys = ON');
   const db = drizzle(raw) as unknown as AppDb;
@@ -53,11 +89,24 @@ async function openOwned(held: Held): Promise<OpenResult> {
 
   let closed = false;
   const lostCallbacks: (() => void)[] = [];
-  const save = async () => {
-    if (closed) return;
+  // Counts exports, so a save only removes a snapshot it includes.
+  let exportSeq = 0;
+  let snapshotSeq = snapshot ? 0 : -1;
+  const exportDb = () => {
     const bytes = raw.export();
     raw.run('PRAGMA foreign_keys = ON'); // export() closes and reopens the connection
+    exportSeq++;
+    return bytes;
+  };
+  const save = async () => {
+    if (closed) return;
+    const bytes = exportDb();
+    const seq = exportSeq;
     await idbPut('sqlite', 'main', bytes);
+    if (snapshotSeq >= 0 && seq >= snapshotSeq) {
+      clearSnapshot();
+      snapshotSeq = -1;
+    }
   };
   const scheduler = createSaveScheduler({ save, debounceMs: 200, maxWaitMs: 1000, onError: (e) => console.warn('Save failed; will retry', e) });
   // persist whatever migrations/seed changed before the first user write
@@ -66,15 +115,19 @@ async function openOwned(held: Held): Promise<OpenResult> {
 
   const flushNow = () => void scheduler.flush();
   const onVisibility = () => document.visibilityState === 'hidden' && flushNow();
+  const onPageHide = () => {
+    if (!closed && scheduler.dirty && writeSnapshot(exportDb())) snapshotSeq = exportSeq;
+    flushNow();
+  };
   document.addEventListener('visibilitychange', onVisibility);
-  window.addEventListener('pagehide', flushNow);
+  window.addEventListener('pagehide', onPageHide);
 
   const shutdown = async (notify: boolean) => {
     if (closed) return;
     await scheduler.flush();
     closed = true;
     document.removeEventListener('visibilitychange', onVisibility);
-    window.removeEventListener('pagehide', flushNow);
+    window.removeEventListener('pagehide', onPageHide);
     channel?.close();
     held.release();
     if (notify) lostCallbacks.forEach((cb) => cb());

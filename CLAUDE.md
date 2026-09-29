@@ -32,29 +32,31 @@
 
 ## Design direction ("Ignite")
 - Reference mockups: `design/ignite/reference/` (dark and light sheets, plus one crop per screen). Built screenshots: `design/ignite/built/` (regenerate with `node scripts/ignite-screens.mjs` after `npm run build:web` with the server on port 4173).
-- Bold, high-contrast, fast. Big condensed numerals, one neon accent, one purple for primary actions. No gradients, no emoji.
+- Bold, high-contrast, fast. Big condensed numerals, one accent per colour scheme, one purple for primary actions. No gradients, no emoji.
 - Type:
   - Barlow Condensed 600/700/800/700i/800i for display and all numbers, with tabular numerals.
   - Barlow 400/500/600/700 for UI and body.
   - Titles are uppercase condensed 800 italic. Small labels are Barlow 700 uppercase with ~0.12em letter-spacing.
-- Tokens live in `src/theme/tokens.ts`; `src/theme/contrast.test.ts` checks every text/background pair against WCAG AA.
-- Dark (the default for new installs):
-  - Surfaces: bg #0E0E10, surface #17171A, raised #222226, current set row #1D1D21.
-  - Lines: hairline #2E2E33, neutral outline buttons #3A3A40.
-  - Text: #F4F1EA, secondary #A09C94, list text #C9C4BA, "×" #8E8A83 (spec #6E6A64 raised to pass AA).
-  - Accent #39FF14. Completed tick #3DDC84 with a #0E0E10 check.
-  - Danger #FF7A6B.
-- Light:
-  - Surfaces: bg #F3F4F1, cards #FFFFFF, raised #E9ECE7.
-  - Lines: hairline #DDE1DA, outline #C4C9C1.
-  - Text: #0E0E10, secondary #5C6159, list text #343832, "×" #656A62 (spec #959A92 raised to pass AA).
-  - Accent #00A03C, used for fills, borders and large text only. Accent ink #04742E for all small green text.
-  - Danger #B3261E.
-  - Cards and tiles have a 2px accent border. The tick is an accent circle with a white check.
-- Both themes: purple #8E48C0 for filled primary buttons and the PR banner.
-  - Text on purple is #F4F1EA with a 2px black outline (2.5px on the banner's "PLUS ULTRA").
-  - Text under ~20px is never outlined.
-  - The outline goes through `OutlinedText` in /src/platform. Web uses `-webkit-text-stroke` with `paint-order: stroke fill`; native draws eight offset copies behind the fill.
+- Colour schemes (Settings → Appearance → Colour), combined with the mode (System / Dark / Light; dark is the default):
+  - Purple #8E48C0 is the fixed brand and action colour in every scheme: filled primary buttons, the PLUS ULTRA banner, the logo. Text on purple is #F4F1EA with a 2px black outline (2.5px on the banner's "PLUS ULTRA"); text under ~20px is never outlined. The outline goes through `OutlinedText` in /src/platform (web: `-webkit-text-stroke` with `paint-order: stroke fill`; native: eight offset copies behind the fill).
+  - Schemes change the background family and the accent. Base values live in `src/theme/schemes.ts`; everything else is derived. Stored in `settings.color_scheme` (default `neon`) and included in JSON export/import.
+  - Neon (default): neutral dark (bg #0E0E10, surface #17171A, raised #222226, current row #1D1D21, hairline #2E2E33, outline #3A3A40, text #F4F1EA, secondary #A09C94, figure body #2A2A2E), accent #39FF14.
+  - Ultraviolet: bg #0D0A1A, surface #17122A, raised #221B3A, current row #1C1633, hairline #2E2645, outline #3D3458, text #F2EEFF, secondary #A39DBF, figure body #2A2440, accent #2EE6FF.
+  - Volt: neutral dark, accent #E4FF1A.
+  - Mono: bg #0B0B0C, surface #161617, raised #222224, current row #1C1C1E, hairline #2C2C2E, outline #3A3A3D, text #FFFFFF, secondary #9A9A9E, figure body #2A2A2C, accent #B07AE6 (lighter than the buttons so highlights stay distinct).
+  - Coral: neutral dark, accent #FF6B5A.
+  - Light base: bg #F3F4F1, cards #FFFFFF, raised #E9ECE7, hairline #DDE1DA, outline #C4C9C1, text #0E0E10, secondary #5C6159, figure body #D3D8D0. Ultraviolet uses a violet-tinted version (bg #F3F1F8, raised #E9E6F2, hairline #DCD8E8, outline #C3BDD6, text #0F0B1E, secondary #5B5672, figure body #D4D0E2).
+  - Light accents: Neon #00A03C, Ultraviolet #00B8D4, Coral #FF6B5A, Mono #8E48C0. Volt light uses volt only as a fill behind near-black text (the current-set highlight, the rest progress bar), never as text or thin outlines.
+  - Light cards and tiles have a 2px accent outline. The light tick is an accent circle with a white check; the dark tick is #3DDC84 with a #0E0E10 check. Danger is #FF7A6B (dark) / #B3261E (light).
+- Accent roles (tokens, all derived in /src/lib/theme with pure functions, never hand-picked):
+  - `accentFill`: the scheme accent exactly as specified, for fills (progress bar); `onAccentFill` is whichever of near-black/white reads best on it.
+  - `accent`: outlines, rings, icons and large accent text, shifted until it reaches 3:1 on bg, cards and raised surfaces.
+  - `accentText` ("accent ink"): small accent text, shifted until it reaches 4.5:1 on bg, cards, raised and the current row.
+  - `figurePrimary`: the muscle highlight, shifted until it reaches 3:1 on the figure body; `figureSecondary` = primary mixed toward the body (45% dark, 40% light).
+  - `times` (the "×" separator): secondary text mixed 35% toward the background, shifted back to 4.5:1.
+  - Light mode darkens, dark mode lightens, in the smallest steps that pass.
+- Tokens: `src/theme/tokens.ts` builds one token object per scheme × mode; components read them from `useTheme()` and never hard-code colours. `src/theme/contrast.test.ts` checks every text/background and graphic pair in every scheme × mode (4.5:1 small text, 3:1 large text and UI graphics) and prints the ratios table.
+- Switching scheme or mode applies instantly. On web it also updates `<meta name="theme-color">`, the page background and `color-scheme`. The app icon is the same for every scheme.
 - Shape: radii are cards 20–22, buttons 14–18, rows 12. Primary buttons are at least 64px tall and every tap target is at least 48px.
 - Motion: 120–200ms, a slight spring on set complete, and the PR banner slides in. Strong haptic on set complete and PR.
 - Tabs: Train, History, Exercises, Settings. Today, Food and Progress stay behind flags in `src/config/features.ts` until their phases.
@@ -83,6 +85,7 @@
 - `npm run test:e2e`: Playwright against `dist/` (build first). Set `PW_CHROMIUM_PATH` to use a preinstalled Chromium.
 - `npm run db:generate`: new Drizzle migration after a schema change (both engines use it).
 - `npm run build:preview`: the app as one self-contained page (`dist-preview/plus-ultra.html`) for the private claude.ai preview: scripts, fonts and sql.js inlined (WASM where allowed, asm.js fallback), no service worker.
+- `node scripts/scheme-screens.mjs`: Train, the active workout and Settings for every colour scheme × mode into `design/ignite/built/schemes/` (needs `dist/` served on port 4173).
 - `node scripts/ignite-screens.mjs`: renders the Ignite screens at 390px in both themes into `design/ignite/built/` (needs `dist/` served on port 4173).
 - Package installs in this environment: `EXPO_OFFLINE=1 npx expo install <pkg>` (the Expo version API is blocked here).
 
@@ -123,8 +126,7 @@
     - A solid filled silhouette with heroic but anatomically plausible proportions: broad shoulders, a clear V-taper, thick arms.
     - Muscles are separated only by thin gaps in the background colour. There are no outlines and no face details; the head is a simple solid shape.
     - The abs have only two simple separations, drawn at large size only.
-  - Colours, dark: body #2A2A2E, primary #39FF14, secondary = accent mixed 45% towards the body.
-  - Colours, light: body #D3D8D0, primary #00A03C, secondary = accent mixed 40% towards the body.
+  - Colours come from the active scheme's tokens: body `figureBody`, primary `figurePrimary`, secondary `figureSecondary` (see Design direction).
   - Gap colour: always the colour of the surface the figure sits on.
   - Separately fillable regions: upper_chest, chest, front_delts, side_delts, rear_delts, traps, upper_back, lats, biceps (brachialis shares it), triceps, forearms.
     - Lats are two wings either side of the spine, tapering towards the waist; the lower back between them stays body colour.
@@ -161,6 +163,7 @@ Phases 1–4 are built, used and tested as a website first. iOS and Android must
 - Web persistence rules (never lose a logged set):
   - Every repository write marks the database dirty. A set change saves with a short trailing debounce (≤ 250ms, max wait 1s).
   - Force an immediate save on `visibilitychange` → hidden and on `pagehide`. iOS can kill a backgrounded page without warning.
+  - Chrome drops an IndexedDB write that hasn't committed when the page unloads (reload, closing the tab). So on `pagehide` with unsaved changes the database is also written synchronously to localStorage (`plus-ultra-unsaved`); the next start prefers that snapshot, moves it into IndexedDB, and any later save removes it.
   - A save exports the database and writes it to IndexedDB in one transaction, then waits for `complete`.
   - On startup, load from IndexedDB, then run migrations and seed.
 - Web Locks API: one tab owns the database. Another tab shows "open in another tab" with a "Use here instead" action; the tab that loses the lock stops writing and shows the same screen.
@@ -191,10 +194,10 @@ Phases 1–4 are built, used and tested as a website first. iOS and Android must
 - Inputs are at least 16px so iOS Safari doesn't zoom when an input is focused. Web gets pointer cursors and subtle hover states.
 
 ### Layout
-- Mobile-first at 390px wide. On wider screens the app sits in a centred column (max 560px) on the warm background, with the tab bar the same width as the column. No multi-column dashboards; it should still feel like the app. Respect `env(safe-area-inset-*)` in standalone PWA mode.
+- Mobile-first at 390px wide. On wider screens the app sits in a centred column (max 560px) on the app background, with the tab bar the same width as the column. No multi-column dashboards; it should still feel like the app. Respect `env(safe-area-inset-*)` in standalone PWA mode.
 
 ### PWA
-- `public/manifest.webmanifest` with `display: standalone`, `start_url: /`, `background_color` and `theme_color` #0E0E10 (the app defaults to dark). `app/+html.tsx` sets the same theme colour and holds the manifest link, the apple-touch-icon and `viewport-fit=cover`.
+- `public/manifest.webmanifest` with `display: standalone`, `start_url: /`, `background_color` and `theme_color` #0E0E10 (the app defaults to Neon dark). `app/+html.tsx` sets the same initial theme colour (updated at runtime for the active scheme and mode) and holds the manifest link, the apple-touch-icon and `viewport-fit=cover`.
 - Icons come from a placeholder SVG mark in `assets/brand/`, exported to 192, 512, maskable 512, apple-touch 180 and a favicon.
 - A hand-written service worker (no Workbox):
   - Precaches the exported app shell, fonts and WASM so the app opens offline at the gym.
