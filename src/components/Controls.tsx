@@ -38,10 +38,10 @@ export function Toggle({ value, onChange, label }: { value: boolean; onChange: (
       value={value}
       onValueChange={onChange}
       accessibilityLabel={label}
-      // Off track uses the "×" grey so the control keeps 3:1 against the card in both themes.
+      // Off track uses the "×" grey so the control keeps 3:1 against the card.
       trackColor={{ false: c.times, true: c.accent }}
-      thumbColor={c.onPurple}
-      {...({ activeThumbColor: c.onPurple } as object)}
+      thumbColor={c.ink}
+      {...({ activeThumbColor: c.onAccent } as object)}
     />
   );
 }

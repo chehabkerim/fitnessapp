@@ -1,8 +1,8 @@
 // Web shell integration: page colours follow the theme, and the service worker is registered in production.
-/** Page background, focus ring, `theme-color` and form-control scheme for the active colour scheme and mode. */
-export function applyShellColors(bg: string, focus?: string, mode?: 'light' | 'dark') {
+/** Page background, focus ring and `theme-color` for the active colour scheme. Always dark. */
+export function applyShellColors(bg: string, focus?: string) {
   if (typeof document === 'undefined') return;
-  if (mode) document.documentElement.style.colorScheme = mode;
+  document.documentElement.style.colorScheme = 'dark';
   document.documentElement.style.setProperty('--pu-bg', bg);
   if (focus) document.documentElement.style.setProperty('--pu-focus', focus);
   document.documentElement.style.backgroundColor = bg;

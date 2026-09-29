@@ -167,7 +167,7 @@ export const SetRow = forwardRef<SetRowHandle, SetRowProps>(function SetRow(prop
       overshootRight={false}
       renderRightActions={() => (
         <Pressable accessibilityRole="button" accessibilityLabel={`Delete ${nameForA11y}`} onPress={onDelete} style={[styles.swipeDelete, { backgroundColor: c.danger }]}>
-          <Icon name="trash" size={22} color={c.onPurple} />
+          <Icon name="trash" size={22} color={c.onDanger} />
         </Pressable>
       )}
       onSwipeableOpen={(dir) => {

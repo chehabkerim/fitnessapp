@@ -3,7 +3,6 @@ import { Barlow_400Regular } from '@expo-google-fonts/barlow/400Regular';
 import { Barlow_500Medium } from '@expo-google-fonts/barlow/500Medium';
 import { Barlow_600SemiBold } from '@expo-google-fonts/barlow/600SemiBold';
 import { Barlow_700Bold } from '@expo-google-fonts/barlow/700Bold';
-import { BarlowCondensed_600SemiBold } from '@expo-google-fonts/barlow-condensed/600SemiBold';
 import { BarlowCondensed_700Bold } from '@expo-google-fonts/barlow-condensed/700Bold';
 import { BarlowCondensed_700Bold_Italic } from '@expo-google-fonts/barlow-condensed/700Bold_Italic';
 import { BarlowCondensed_800ExtraBold } from '@expo-google-fonts/barlow-condensed/800ExtraBold';
@@ -29,7 +28,6 @@ export default function RootLayout() {
     Barlow_500Medium,
     Barlow_600SemiBold,
     Barlow_700Bold,
-    BarlowCondensed_600SemiBold,
     BarlowCondensed_700Bold,
     BarlowCondensed_700Bold_Italic,
     BarlowCondensed_800ExtraBold,
@@ -63,24 +61,22 @@ export default function RootLayout() {
   );
 }
 
-/** Centred app column (max 560px) on the warm background; phone-first. */
+/** Centred app column (max 560px) on the scheme's background; phone-first. Always dark. */
 function Shell({ children }: { children: React.ReactNode }) {
-  const { c, mode } = useTheme();
-  useEffect(() => applyShellColors(c.bg, c.focus, mode), [c.bg, c.focus, mode]);
+  const { c } = useTheme();
+  useEffect(() => applyShellColors(c.bg, c.focus), [c.bg, c.focus]);
   return (
     <View style={[styles.fill, { backgroundColor: c.bg }]}>
-      <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style="light" />
       <View style={[styles.column, { backgroundColor: c.bg }]}>{children}</View>
     </View>
   );
 }
 
-/** Applies the stored appearance preference once the database is open. */
+/** Applies the stored colour scheme once the database is open. */
 function ThemeSync() {
-  const pref = useLive((r) => r.settings.get().theme);
   const colorScheme = useLive((r) => r.settings.get().colorScheme);
-  const { setPref, setColorScheme } = useTheme();
-  useEffect(() => setPref(pref), [pref, setPref]);
+  const { setColorScheme } = useTheme();
   useEffect(() => setColorScheme(colorScheme), [colorScheme, setColorScheme]);
   return null;
 }

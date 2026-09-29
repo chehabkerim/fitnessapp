@@ -64,8 +64,8 @@ function Row({ set, label, state, pr, exercise, units, resting, onSelect, onTogg
       style={[
         styles.row,
         dim
-          ? { backgroundColor: c.cardBorderWidth > 1 ? c.raised : c.surface, borderColor: 'transparent', borderWidth: 1 }
-          : { backgroundColor: now ? c.current : c.surface, borderColor: now ? c.accent : upNext || c.cardBorderWidth > 1 ? c.line : c.surface, borderWidth: now ? 1.5 : 1 },
+          ? { backgroundColor: c.surface, borderColor: 'transparent', borderWidth: 1 }
+          : { backgroundColor: now ? c.current : c.surface, borderColor: now ? c.accent : upNext ? c.line : c.surface, borderWidth: now ? 1.5 : 1 },
       ]}
     >
       <Text style={[styles.num, { color: now ? c.accentText : c.muted }]} numeric>

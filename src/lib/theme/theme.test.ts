@@ -1,48 +1,44 @@
-import { accentGraphic, accentInk, contrastRatio, ensureContrast, mix, readableOn } from '.';
+import { accentGraphic, accentInk, contrastRatio, ensureContrast, mix, onAccent } from '.';
 
-const LIGHT = ['#F3F4F1', '#FFFFFF', '#E9ECE7'];
-const DARK = ['#0E0E10', '#17171A', '#222226'];
+const BG = '#0E0E10';
+const SURFACE = '#17171A';
 
 describe('ensureContrast', () => {
   it('keeps a colour that already passes', () => {
-    expect(ensureContrast('#39ff14', DARK, 4.5, 'lighter')).toBe('#39FF14');
+    expect(ensureContrast('#39ff14', [BG, SURFACE], 4.5)).toBe('#39FF14');
   });
 
-  it('darkens just enough to pass against every background', () => {
-    const ink = ensureContrast('#FF6B5A', LIGHT, 4.5, 'darker');
-    for (const bg of LIGHT) expect(contrastRatio(ink, bg)).toBeGreaterThanOrEqual(4.5);
-    // one step less would fail somewhere: the result is the smallest adjustment
-    const step = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => i / 100).find((a) => mix('#FF6B5A', '#000000', a) === ink);
-    if (step !== undefined) {
-      const lighter = mix('#FF6B5A', '#000000', step - 0.01);
-      expect(LIGHT.some((bg) => contrastRatio(lighter, bg) < 4.5)).toBe(true);
-    }
+  it('lightens just enough: one step less would fail', () => {
+    const ink = accentInk('#6A2FA0', [BG, SURFACE]);
+    expect(Math.min(contrastRatio(ink, BG), contrastRatio(ink, SURFACE))).toBeGreaterThanOrEqual(4.5);
+    const step = Array.from({ length: 100 }, (_, i) => (i + 1) / 100).find((a) => mix('#6A2FA0', '#FFFFFF', a) === ink)!;
+    expect(step).toBeGreaterThan(0);
+    const less = mix('#6A2FA0', '#FFFFFF', step - 0.01);
+    expect(Math.min(contrastRatio(less, BG), contrastRatio(less, SURFACE))).toBeLessThan(4.5);
   });
 
-  it('lightens in dark mode', () => {
-    const ink = ensureContrast('#6A2FA0', DARK, 4.5, 'lighter');
-    for (const bg of DARK) expect(contrastRatio(ink, bg)).toBeGreaterThanOrEqual(4.5);
-  });
-
-  it('throws when the target is impossible', () => {
-    expect(() => ensureContrast('#777777', ['#777777'], 22, 'darker')).toThrow("can't reach");
+  it('can darken, and throws when the target is impossible', () => {
+    const dark = ensureContrast('#FF6B5A', ['#FFFFFF'], 4.5, 'darker');
+    expect(contrastRatio(dark, '#FFFFFF')).toBeGreaterThanOrEqual(4.5);
+    expect(() => ensureContrast('#777777', ['#777777'], 22)).toThrow("can't reach");
   });
 });
 
-describe('accent ink and graphics', () => {
-  it('derives text and graphic variants for light accents', () => {
-    const ink = accentInk('#00B8D4', LIGHT, 'light');
-    const graphic = accentGraphic('#00B8D4', LIGHT, 'light');
-    for (const bg of LIGHT) {
-      expect(contrastRatio(ink, bg)).toBeGreaterThanOrEqual(4.5);
-      expect(contrastRatio(graphic, bg)).toBeGreaterThanOrEqual(3);
-    }
-    // graphics need less than text, so they stay closer to the original colour
-    expect(contrastRatio(graphic, '#FFFFFF')).toBeLessThan(contrastRatio(ink, '#FFFFFF'));
+describe('accent derivations', () => {
+  it('accent ink reaches 4.5:1 and graphics 3:1, lightening dark blues', () => {
+    const blue = '#0000FF'; // the darkest custom colour
+    const ink = accentInk(blue, [BG, SURFACE]);
+    const graphic = accentGraphic(blue, [BG, SURFACE]);
+    expect(contrastRatio(ink, BG)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(graphic, BG)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(graphic, BG)).toBeLessThan(contrastRatio(ink, BG));
   });
 
-  it('picks near-black text on volt and white on purple', () => {
-    expect(readableOn('#E4FF1A')).toBe('#0E0E10');
-    expect(readableOn('#8E48C0')).toBe('#FFFFFF');
+  it('onAccent: near-black on bright accents, white on deep ones', () => {
+    expect(onAccent('#39FF14')).toBe('#0E0E10');
+    expect(onAccent('#E4FF1A')).toBe('#0E0E10');
+    expect(onAccent('#FFFFFF')).toBe('#0E0E10');
+    expect(onAccent('#FF6B5A')).toBe('#0E0E10');
+    expect(onAccent('#0000FF')).toBe('#FFFFFF');
   });
 });

@@ -1,31 +1,26 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
 
-import { COLOR_SCHEMES, type ColorScheme, type ThemePref } from '../lib/domain';
-import type { Mode } from '../lib/theme';
+import type { ColorScheme } from '../lib/domain';
+import { SELECTABLE_SCHEMES } from './schemes';
 import { themes, type Colors } from './tokens';
 
 interface ThemeValue {
-  /** The light/dark mode in effect (System resolved). */
-  mode: Mode;
   colorScheme: ColorScheme;
   c: Colors;
-  pref: ThemePref;
-  setPref: (p: ThemePref) => void;
   setColorScheme: (s: ColorScheme) => void;
 }
 
 const ThemeContext = createContext<ThemeValue | null>(null);
 
-/** Neon in dark mode until the stored preferences load. Changes apply instantly, without a reload. */
+/**
+ * Always dark: the OS light/dark setting is ignored. Neon until the stored scheme loads; switching applies
+ * instantly. A scheme that isn't selectable (Ultraviolet before it unlocks, or an unknown value from a
+ * hand-edited import) falls back to Neon.
+ */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const system = useColorScheme();
-  const [pref, setPref] = useState<ThemePref>('dark');
   const [stored, setColorScheme] = useState<ColorScheme>('neon');
-  // An unknown value (e.g. from a hand-edited import) falls back to Neon.
-  const colorScheme = COLOR_SCHEMES.includes(stored) ? stored : 'neon';
-  const mode: Mode = pref === 'system' ? (system === 'light' ? 'light' : 'dark') : pref;
-  const value = useMemo(() => ({ mode, colorScheme, c: themes[colorScheme][mode], pref, setPref, setColorScheme }), [mode, colorScheme, pref]);
+  const colorScheme = SELECTABLE_SCHEMES.includes(stored) ? stored : 'neon';
+  const value = useMemo(() => ({ colorScheme, c: themes[colorScheme], setColorScheme }), [colorScheme]);
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 

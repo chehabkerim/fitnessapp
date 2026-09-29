@@ -1,21 +1,21 @@
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon, Text } from '@/components';
-import { COLOR_SCHEMES, type ColorScheme } from '@/lib/domain';
-import { readableOn } from '@/lib/theme';
+import type { ColorScheme } from '@/lib/domain';
 import { fonts, radius, space, themes, useTheme } from '@/theme';
-import { SCHEMES } from '@/theme/schemes';
+import { SCHEMES, SELECTABLE_SCHEMES } from '@/theme/schemes';
 
 /**
- * Settings → Appearance → Colour: one card per scheme with a mini preview in the current mode
- * (background, accent swatch, purple button). The selected card is outlined in its accent with a check.
+ * Settings → Appearance: a 3-column grid of scheme cards. Each previews the scheme (its background, a raised
+ * card with an accent dot and bar, an accent button). The selected card has a 2px accent border, a check
+ * and "SELECTED".
  */
 export function SchemePicker({ value, onChange }: { value: ColorScheme; onChange: (s: ColorScheme) => void }) {
-  const { c, mode } = useTheme();
+  const { c } = useTheme();
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.row} accessibilityRole="radiogroup" accessibilityLabel="Colour scheme">
-      {COLOR_SCHEMES.map((id) => {
-        const t = themes[id][mode];
+    <View style={styles.grid} accessibilityRole="radiogroup" accessibilityLabel="Colour scheme">
+      {SELECTABLE_SCHEMES.map((id) => {
+        const t = themes[id];
         const selected = id === value;
         const name = SCHEMES[id].name;
         return (
@@ -28,36 +28,43 @@ export function SchemePicker({ value, onChange }: { value: ColorScheme; onChange
             accessibilityLabel={`${name} colour scheme${selected ? ', selected' : ''}`}
             style={(s) => [
               styles.card,
-              { backgroundColor: c.surface, borderColor: selected ? c.accent : c.outline, borderWidth: selected ? 2 : 1, transform: [{ scale: s.pressed ? 0.97 : 1 }] },
+              { backgroundColor: c.surface, borderColor: selected ? c.accent : c.line, borderWidth: selected ? 2 : 1, transform: [{ scale: s.pressed ? 0.97 : 1 }] },
             ]}
           >
             <View style={[styles.preview, { backgroundColor: t.bg, borderColor: t.line }]}>
-              <View style={[styles.swatch, { backgroundColor: t.accentFill }]} />
-              <View style={[styles.button, { backgroundColor: t.purple }]} />
+              <View style={[styles.mini, { backgroundColor: t.raised }]}>
+                <View style={[styles.dot, { backgroundColor: t.accent }]} />
+                <View style={[styles.bar, { backgroundColor: t.accent }]} />
+              </View>
+              <View style={[styles.button, { backgroundColor: t.accent }]} />
               {selected && (
                 <View style={[styles.check, { backgroundColor: t.accent }]}>
-                  <Icon name="check" size={12} color={readableOn(t.accent)} strokeWidth={3} />
+                  <Icon name="check" size={12} color={t.onAccent} strokeWidth={3} />
                 </View>
               )}
             </View>
-            <Text style={[styles.name, { color: selected ? c.ink : c.muted }]} numberOfLines={1}>
+            <Text style={[styles.name, { color: c.ink }]} numberOfLines={1}>
               {name}
+            </Text>
+            <Text variant="overline" style={[styles.state, { color: selected ? c.accentText : 'transparent' }]} accessibilityElementsHidden>
+              Selected
             </Text>
           </Pressable>
         );
       })}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // Runs to the screen edges (past the page padding) so a partly visible card shows the row scrolls.
-  bleed: { marginHorizontal: -space.lg },
-  row: { gap: space.xs, paddingVertical: 2, paddingHorizontal: space.lg },
-  card: { width: 96, borderRadius: radius.md, padding: space.xs, gap: space.xs },
-  preview: { height: 56, borderRadius: radius.sm, borderWidth: 1, padding: space.xs, justifyContent: 'space-between' },
-  swatch: { width: 16, height: 16, borderRadius: 8 },
-  button: { height: 12, borderRadius: 6, alignSelf: 'stretch' },
-  check: { position: 'absolute', top: 6, right: 6, width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  name: { fontFamily: fonts.bodySemi, fontSize: 14, lineHeight: 18, textAlign: 'center' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: space.xs },
+  card: { flexBasis: '31.5%', borderRadius: radius.md, padding: space.xs, gap: space.xxs },
+  preview: { height: 76, borderRadius: radius.sm, borderWidth: 1, padding: space.xs, gap: space.xs, justifyContent: 'space-between' },
+  mini: { flex: 1, borderRadius: 6, paddingHorizontal: 6, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  bar: { height: 5, borderRadius: 3, flex: 1, maxWidth: '70%' },
+  button: { height: 14, borderRadius: 5 },
+  check: { position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  name: { fontFamily: fonts.cond800i, fontSize: 18, lineHeight: 22, textTransform: 'uppercase', marginTop: 2 },
+  state: { fontSize: 10, lineHeight: 12, letterSpacing: 1.2 },
 });

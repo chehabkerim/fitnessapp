@@ -1,13 +1,16 @@
-// Renders the five Ignite reference screens at 390px, dark and light, into design/ignite/built/.
+// Renders the Plus Ultra screens at 390px into design/plus-ultra/built/: every screen in Neon, and the main
+// screens in the other colour schemes. Needs `npm run build:web` and dist/ served on port 4173.
+// Usage: node scripts/screens.mjs [Neon Volt Mono Coral]
 // Builds a realistic history with Playwright's clock, then captures on a touch device (keypad, no hover).
 // Usage: npm run build:web && node scripts/serve.mjs 4173 & node scripts/ignite-screens.mjs
 import { chromium } from '@playwright/test';
-import { mkdtempSync } from 'node:fs';
+import { mkdirSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const BASE = 'http://localhost:4173';
-const OUT = new URL('../design/ignite/built/', import.meta.url).pathname;
+const OUT = new URL('../design/plus-ultra/built/', import.meta.url).pathname;
+mkdirSync(OUT, { recursive: true });
 const EXE = process.env.PW_CHROMIUM_PATH || undefined;
 const EX = 'Incline Dumbbell Bench Press';
 const LAT = 'Lat Pulldown';
@@ -68,12 +71,12 @@ async function finish(p) {
   await p.getByRole('button', { name: 'Done', exact: true }).click();
 }
 
-async function history(profile, theme) {
+async function history(profile, scheme) {
   const ctx = await context(profile, { touch: false });
   const p = await page(ctx, at(20, '09:00:00'));
-  if (theme === 'light') {
+  if (scheme !== 'Neon') {
     await p.goto(`${BASE}/settings`);
-    await p.getByRole('radio', { name: 'Light' }).click();
+    await p.getByRole('radio', { name: new RegExp(`^${scheme} colour scheme`) }).click();
     await p.waitForTimeout(600);
     await p.goto(`${BASE}/workouts`);
     await p.getByText('Up next').waitFor();
@@ -112,8 +115,9 @@ async function history(profile, theme) {
   await close(ctx);
 }
 
-async function capture(profile, theme) {
-  const shot = (p, name) => p.screenshot({ path: join(OUT, `${name}-${theme}.png`) });
+async function capture(profile, scheme) {
+  const all = scheme === 'Neon';
+  const shot = (p, name) => p.screenshot({ path: join(OUT, `${name}-${scheme.toLowerCase()}.png`) });
   // Thursday 24: Train
   let ctx = await context(profile, { touch: true });
   let p = await page(ctx, at(24, '18:00:00'));
@@ -180,28 +184,34 @@ async function capture(profile, theme) {
   await p.waitForTimeout(600);
   await shot(p, '5-complete');
 
-  // The restyled secondary screens (not in the reference sheet)
+  // The restyled secondary screens (Settings in every scheme, the rest in Neon)
   await p.getByRole('button', { name: 'Done', exact: true }).click();
   for (const [path, name, ready] of [
     ['/history', '6-history', 'History'],
     ['/exercises', '7-exercises', 'Back & Chest'],
     ['/settings', '9-settings', 'Units'],
-  ]) {
+  ].filter(([, name]) => all || name === '9-settings')) {
     await p.goto(`${BASE}${path}`);
     await p.getByText(ready).first().waitFor({ timeout: 5000 }).catch(() => {});
     await p.waitForTimeout(500);
     await shot(p, name);
   }
-  await p.goto(`${BASE}/exercises`);
-  await p.getByText(EX).first().click();
-  await p.waitForTimeout(700);
-  await shot(p, '8-exercise-detail');
+  if (all) {
+    await p.getByText('About', { exact: true }).scrollIntoViewIfNeeded();
+    await p.waitForTimeout(300);
+    await shot(p, '10-about');
+    await p.goto(`${BASE}/exercises`);
+    await p.getByText(EX).first().click();
+    await p.waitForTimeout(700);
+    await shot(p, '8-exercise-detail');
+  }
   await close(ctx);
 }
 
-for (const theme of ['dark', 'light']) {
-  const profile = mkdtempSync(join(tmpdir(), `ignite-${theme}-`));
-  await history(profile, theme);
-  await capture(profile, theme);
-  console.log(`captured ${theme}`);
+const schemes = process.argv.slice(2).length ? process.argv.slice(2) : ['Neon', 'Volt', 'Mono', 'Coral'];
+for (const scheme of schemes) {
+  const profile = mkdtempSync(join(tmpdir(), `screens-${scheme}-`));
+  await history(profile, scheme);
+  await capture(profile, scheme);
+  console.log(`captured ${scheme}`);
 }

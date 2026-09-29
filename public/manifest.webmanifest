@@ -1,7 +1,7 @@
 {
   "name": "Plus Ultra",
   "short_name": "Plus Ultra",
-  "description": "A calm, local-first training log.",
+  "description": "A bold, fast, local-first training log.",
   "start_url": "/workouts",
   "scope": "/",
   "display": "standalone",

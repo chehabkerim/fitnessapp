@@ -1,9 +1,9 @@
 # Plus Ultra — Fitness Tracker (iOS + Android)
 
 ## Product
-"Plus Ultra" is a personal fitness tracker for calories/food, steps, workouts, and body weight. Steps and active energy are read automatically from Apple Health (iOS) and Health Connect (Android). Single user, local-first, no accounts or backend in v1. It should feel bold and fast (the "Ignite" direction): a high-contrast training tool that is quick to use at the gym, not a gamified app.
+"Plus Ultra" is a personal fitness tracker for calories/food, steps, workouts, and body weight. Steps and active energy are read automatically from Apple Health (iOS) and Health Connect (Android). Single user, local-first, no accounts or backend in v1. It should feel bold and fast: a dark, high-contrast training tool that is quick to use at the gym, not a gamified app.
 - Name: "Plus Ultra" is used in app.config (name), the web manifest (`name` and `short_name`), the HTML `<title>`, the splash screen and Settings → About. The name is the only reference: no My Hero Academia artwork, characters, logos, fonts or colour schemes.
-- PR moment: when a set breaks a personal record, a purple banner slides in above the set list: "New personal record", then "PLUS ULTRA" in Barlow Condensed 800 italic with a 2.5px black outline, then the record and value. A strong haptic plays (vibrate on Android web), and the set row gets a green "PR" tag. On the finish summary, the records card is headed "Plus Ultra". The phrase appears nowhere else.
+- "PLUS ULTRA" also names the personal-record moment: the PR banner (accent fill, onAccent text: bolt + "New personal record", "PLUS ULTRA" huge, record type and value), the PR badge on a set row, and the records card on the Workout complete screen. A strong haptic plays (vibrate on Android web). Beyond the name and these, the phrase appears nowhere else (badges: only the Plus Ultra category, stage 2).
 
 ## Tech stack
 - Expo (latest stable SDK) + TypeScript (strict), Expo Router for navigation
@@ -30,37 +30,71 @@
 7. Progress: weekly/monthly charts for calories, steps, weight, workout volume.
 8. Settings: goals, units, health permissions status, export/import JSON, reset data.
 
-## Design direction ("Ignite")
-- Reference mockups: `design/ignite/reference/` (dark and light sheets, plus one crop per screen). Built screenshots: `design/ignite/built/` (regenerate with `node scripts/ignite-screens.mjs` after `npm run build:web` with the server on port 4173).
-- Bold, high-contrast, fast. Big condensed numerals, one accent per colour scheme, one purple for primary actions. No gradients, no emoji.
-- Type:
-  - Barlow Condensed 600/700/800/700i/800i for display and all numbers, with tabular numerals.
-  - Barlow 400/500/600/700 for UI and body.
-  - Titles are uppercase condensed 800 italic. Small labels are Barlow 700 uppercase with ~0.12em letter-spacing.
-- Colour schemes (Settings → Appearance → Colour), combined with the mode (System / Dark / Light; dark is the default):
-  - Purple #8E48C0 is the fixed brand and action colour in every scheme: filled primary buttons, the PLUS ULTRA banner, the logo. Text on purple is #F4F1EA with a 2px black outline (2.5px on the banner's "PLUS ULTRA"); text under ~20px is never outlined. The outline goes through `OutlinedText` in /src/platform (web: `-webkit-text-stroke` with `paint-order: stroke fill`; native: eight offset copies behind the fill).
-  - Schemes change the background family and the accent. Base values live in `src/theme/schemes.ts`; everything else is derived. Stored in `settings.color_scheme` (default `neon`) and included in JSON export/import.
-  - Neon (default): neutral dark (bg #0E0E10, surface #17171A, raised #222226, current row #1D1D21, hairline #2E2E33, outline #3A3A40, text #F4F1EA, secondary #A09C94, figure body #2A2A2E), accent #39FF14.
-  - Ultraviolet: bg #0D0A1A, surface #17122A, raised #221B3A, current row #1C1633, hairline #2E2645, outline #3D3458, text #F2EEFF, secondary #A39DBF, figure body #2A2440, accent #2EE6FF.
-  - Volt: neutral dark, accent #E4FF1A.
-  - Mono: bg #0B0B0C, surface #161617, raised #222224, current row #1C1C1E, hairline #2C2C2E, outline #3A3A3D, text #FFFFFF, secondary #9A9A9E, figure body #2A2A2C, accent #B07AE6 (lighter than the buttons so highlights stay distinct).
-  - Coral: neutral dark, accent #FF6B5A.
-  - Light base: bg #F3F4F1, cards #FFFFFF, raised #E9ECE7, hairline #DDE1DA, outline #C4C9C1, text #0E0E10, secondary #5C6159, figure body #D3D8D0. Ultraviolet uses a violet-tinted version (bg #F3F1F8, raised #E9E6F2, hairline #DCD8E8, outline #C3BDD6, text #0F0B1E, secondary #5B5672, figure body #D4D0E2).
-  - Light accents: Neon #00A03C, Ultraviolet #00B8D4, Coral #FF6B5A, Mono #8E48C0. Volt light uses volt only as a fill behind near-black text (the current-set highlight, the rest progress bar), never as text or thin outlines.
-  - Light cards and tiles have a 2px accent outline. The light tick is an accent circle with a white check; the dark tick is #3DDC84 with a #0E0E10 check. Danger is #FF7A6B (dark) / #B3261E (light).
-- Accent roles (tokens, all derived in /src/lib/theme with pure functions, never hand-picked):
-  - `accentFill`: the scheme accent exactly as specified, for fills (progress bar); `onAccentFill` is whichever of near-black/white reads best on it.
-  - `accent`: outlines, rings, icons and large accent text, shifted until it reaches 3:1 on bg, cards and raised surfaces.
-  - `accentText` ("accent ink"): small accent text, shifted until it reaches 4.5:1 on bg, cards, raised and the current row.
-  - `figurePrimary`: the muscle highlight, shifted until it reaches 3:1 on the figure body; `figureSecondary` = primary mixed toward the body (45% dark, 40% light).
-  - `times` (the "×" separator): secondary text mixed 35% toward the background, shifted back to 4.5:1.
-  - Light mode darkens, dark mode lightens, in the smallest steps that pass.
-- Tokens: `src/theme/tokens.ts` builds one token object per scheme × mode; components read them from `useTheme()` and never hard-code colours. `src/theme/contrast.test.ts` checks every text/background and graphic pair in every scheme × mode (4.5:1 small text, 3:1 large text and UI graphics) and prints the ratios table.
-- Switching scheme or mode applies instantly. On web it also updates `<meta name="theme-color">`, the page background and `color-scheme`. The app icon is the same for every scheme.
-- Shape: radii are cards 20–22, buttons 14–18, rows 12. Primary buttons are at least 64px tall and every tap target is at least 48px.
-- Motion: 120–200ms, a slight spring on set complete, and the PR banner slides in. Strong haptic on set complete and PR.
-- Tabs: Train, History, Exercises, Settings. Today, Food and Progress stay behind flags in `src/config/features.ts` until their phases.
-- Logging on touch devices uses the in-app keypad (big value boxes, ± chips); desktop types straight into the value boxes.
+## Design direction
+- Design sources: `design/plus-ultra/` (logo SVGs, app icon SVGs, `badge-emblem-reference.html`; the approved screen screenshots belong in `design/plus-ultra/reference/`). Built screenshots: `design/plus-ultra/built/` (`node scripts/screens.mjs` after `npm run build:web`, with dist/ served on port 4173). The earlier Ignite designs stay in `design/ignite/` for history.
+- Bold, high-contrast, fast. Big condensed numerals, one accent per colour scheme. No emoji; no gradients except the badge emblems and the Ultraviolet sheets (stages 2–3).
+- **Dark only.** There is no light mode and the OS light/dark setting is ignored. The old `settings.theme` column stays in the schema, but nothing reads it.
+- Type (load only these weights):
+  - Display and all numbers: Barlow Condensed 700, 800, 700 italic, 800 italic (`@expo-google-fonts/barlow-condensed`). Tabular numerals for every number.
+  - UI and body: Barlow 400, 500, 600, 700 (`@expo-google-fonts/barlow`).
+  - Screen titles and big labels: uppercase condensed 800 italic. Small labels: Barlow 700 uppercase, letter-spacing ~0.12em.
+- Brand purple #8E48C0 is used ONLY for the logo, the app icon and (stage 2) the badge enamel. It is never a UI colour inside the app (`brand.purple` in tokens.ts).
+- Logo: `design/plus-ultra/logo-wordmark-*.svg`. In the app (the splash shown while the log opens, and Settings → About), the `Logo` component draws the two-tone wordmark: "PLUS" in brand purple, "LTRA" in the active scheme's accent. Its paths are generated by `scripts/gen-logo.mjs`, with the transforms baked in so web and native render identically.
+- App icon: `design/plus-ultra/app-icon.svg` / `app-icon-maskable.svg`. `scripts/make-icons.mjs` rasterises them with the local Chromium (no extra dependency) into the PWA icons (192, 512, maskable 512, apple-touch 180, favicon), the native icon, the Android adaptive layers (purple background) and the splash image. The icon is the same for every scheme.
+
+### Colour schemes (Settings → Appearance)
+One token object per scheme in `src/theme`: `schemes.ts` holds the base values and `tokens.ts` builds `themes`. Components read tokens from `useTheme()` and never hard-code colours.
+
+| Token | Neon (default) | Ultraviolet (locked, stage 3) | Volt | Mono | Coral |
+|---|---|---|---|---|---|
+| bg | #0E0E10 | #0D0A1A | #0E0E10 | #0B0B0C | #0E0E10 |
+| surface | #17171A | #17122A | #17171A | #161617 | #17171A |
+| raised | #222226 | #221B3A | #222226 | #222224 | #222226 |
+| currentRow (`current`) | #1D1D21 | #1C1633 | #1D1D21 | #1C1C1E | #1D1D21 |
+| hairline (`line`) | #2E2E33 | #2E2645 | #2E2E33 | #2C2C2E | #2E2E33 |
+| outline | #3A3A40 | #3D3458 | #3A3A40 | #3A3A3D | #3A3A40 |
+| text (`ink`) | #F4F1EA | #F2EEFF | #F4F1EA | #FFFFFF | #F4F1EA |
+| secondary (`muted`) | #A09C94 | #A39DBF | #A09C94 | #9A9A9E | #A09C94 |
+| figureBody | #2A2A2E | #2A2440 | #2A2A2E | #2A2A2C | #2A2A2E |
+| accent | #39FF14 | #2EE6FF | #E4FF1A | #FFFFFF | #FF6B5A |
+
+A sixth "Custom" scheme (stage 3) uses Neon's neutral tokens with an accent the user picks.
+
+Derived tokens (pure functions in `/src/lib/theme`, with tests):
+- `onAccent`: whichever of #0E0E10 or #FFFFFF has the higher contrast on the accent.
+- `accentText` (accent ink): the accent lightened toward white until it reaches ≥ 4.5:1 on bg, surface, raised and the current row. Used for all small accent text.
+- `accent` itself is lightened only if it would fall below 3:1 as a graphic. None of the five schemes needs this; it matters for Custom colours.
+- `figureSecondary`: the accent mixed 45% toward figureBody.
+- `listText` (text mixed halfway to secondary) and `times` (the "×" grey) are derived and lifted to 4.5:1.
+- `src/theme/contrast.test.ts` checks every text/background pair in every scheme (4.5:1 small text, 3:1 large text and UI graphics). It fails the build if one misses, and prints the ratios table.
+
+How colour is used:
+- Filled primary buttons (Start workout, Complete set, keypad Done, summary Done, Use this colour): accent background, onAccent text, no text outline.
+- Secondary buttons: transparent with a 1.5px `outline` border. Finish and Skip: accent outline and accent ink.
+- The accent also drives:
+  - labels like "UP NEXT" and "SET 2 OF 3" (accent ink);
+  - progress bars and dashes, the rest countdown bar;
+  - the active tab and the current-set outline;
+  - completed-set ticks (accent circle, onAccent check);
+  - muscle-figure primary fills;
+  - the PLUS ULTRA banner (accent background, onAccent text).
+- Switching scheme applies instantly, without a reload. On web, `<meta name="theme-color">`, the page background and the focus ring follow the active scheme.
+
+Appearance:
+- Settings → Appearance shows the selectable scheme cards (stage 1: Neon, Volt, Mono, Coral) in a 3-column grid.
+- Each card previews the scheme: its background, a raised card with an accent dot and bar, and an accent button. The name is in condensed italic.
+- The selected card has a 2px accent border, a check and "SELECTED".
+- Below the grid: "Plus Ultra is dark by design, so your colour always pops."
+- The scheme is stored in `settings.color_scheme` (default `neon`) and included in JSON export/import. A stored scheme that isn't selectable (Ultraviolet before it unlocks) falls back to Neon.
+
+### Shape, motion, navigation
+- Radii: cards 20–22px, buttons 14–18px, rows 12px. Primary buttons are ≥ 64px tall (Complete set 68px). All tap targets are ≥ 48px.
+- Motion: 120–200ms, a slight spring when a set completes, and the PR banner slides in. Strong haptic on set complete and PR (native); `navigator.vibrate` on Android web.
+- Tabs: Train, History, Exercises, Settings (icon + uppercase label, active in accent). Today, Food and Progress stay behind flags in `src/config/features.ts` until their phases.
+- The active workout is a focus mode, one exercise at a time:
+  - Swipe, the progress dashes, or ← / → on desktop move between exercises.
+  - After an exercise's last set, it advances when rest ends.
+  - Touch devices log with the in-app keypad (no system keyboard). Desktop types into the value boxes: Enter completes the set, Escape closes sheets.
 - Respect safe areas and Dynamic Type / font scaling.
 
 ## Platform & compliance
@@ -85,8 +119,8 @@
 - `npm run test:e2e`: Playwright against `dist/` (build first). Set `PW_CHROMIUM_PATH` to use a preinstalled Chromium.
 - `npm run db:generate`: new Drizzle migration after a schema change (both engines use it).
 - `npm run build:preview`: the app as one self-contained page (`dist-preview/plus-ultra.html`) for the private claude.ai preview: scripts, fonts and sql.js inlined (WASM where allowed, asm.js fallback), no service worker.
-- `node scripts/scheme-screens.mjs`: Train, the active workout and Settings for every colour scheme × mode into `design/ignite/built/schemes/` (needs `dist/` served on port 4173).
-- `node scripts/ignite-screens.mjs`: renders the Ignite screens at 390px in both themes into `design/ignite/built/` (needs `dist/` served on port 4173).
+- `node scripts/screens.mjs [Neon Volt Mono Coral]`: renders the screens at 390px into `design/plus-ultra/built/` (every screen in Neon, the main ones in the other schemes; needs `dist/` served on port 4173).
+- `node scripts/make-icons.mjs`: icons and splash from `design/plus-ultra/`. `node scripts/gen-logo.mjs`: regenerates the logo paths.
 - Package installs in this environment: `EXPO_OFFLINE=1 npx expo install <pkg>` (the Expo version API is blocked here).
 
 ## Implementation notes (Phase 1)
@@ -96,7 +130,7 @@
 - Web accessibility state uses RN's `aria-*` props (`aria-checked`, `aria-selected`); `accessibilityState` alone doesn't reach the DOM in react-native-web. Elements that must be skipped by Tab use `tabIndex={-1}`.
 
 ## Roadmap
-- **Phase 1:** foundation + workouts (web-first, phone-first), restyled in the Ignite direction. Today, Food and Progress are hidden behind feature flags.
+- **Phase 1:** foundation + workouts (web-first, phone-first), redesigned in three stages: 1) design system, colour schemes and screens; 2) badges; 3) the Ultraviolet unlock and custom colour. Today, Food and Progress are hidden behind feature flags.
 - **Phase 2:** onboarding + calorie target + body weight.
 - **Phase 3:** food log (Open Food Facts search, barcode scanning, custom foods).
 - **Phase 4:** Today dashboard + progress charts.
@@ -188,6 +222,7 @@ Phases 1–4 are built, used and tested as a website first. iOS and Android must
 - Gestures are shortcuts only. Every swipe or long-press action has a visible control. Each row has a menu with delete and a warm-up toggle. On web, a delete icon button also appears on hover and focus.
 - Full keyboard support:
   - In a set row, Tab moves weight → reps → complete.
+  - ← / → move between exercises in the active workout (not while typing).
   - Enter completes the set and moves focus to the next set's weight.
   - Escape closes sheets and menus.
   - Focus rings are visible (accent, 2px).
@@ -197,8 +232,8 @@ Phases 1–4 are built, used and tested as a website first. iOS and Android must
 - Mobile-first at 390px wide. On wider screens the app sits in a centred column (max 560px) on the app background, with the tab bar the same width as the column. No multi-column dashboards; it should still feel like the app. Respect `env(safe-area-inset-*)` in standalone PWA mode.
 
 ### PWA
-- `public/manifest.webmanifest` with `display: standalone`, `start_url: /`, `background_color` and `theme_color` #0E0E10 (the app defaults to Neon dark). `app/+html.tsx` sets the same initial theme colour (updated at runtime for the active scheme and mode) and holds the manifest link, the apple-touch-icon and `viewport-fit=cover`.
-- Icons come from a placeholder SVG mark in `assets/brand/`, exported to 192, 512, maskable 512, apple-touch 180 and a favicon.
+- `public/manifest.webmanifest` with `display: standalone`, `start_url: /`, `background_color` and `theme_color` #0E0E10 (Neon). `app/+html.tsx` sets the same initial theme colour (updated at runtime for the active scheme) and `color-scheme: dark` and holds the manifest link, the apple-touch-icon and `viewport-fit=cover`.
+- Icons come from `design/plus-ultra/app-icon.svg` and `app-icon-maskable.svg` (`scripts/make-icons.mjs`), exported to 192, 512, maskable 512, apple-touch 180 and a favicon.
 - A hand-written service worker (no Workbox):
   - Precaches the exported app shell, fonts and WASM so the app opens offline at the gym.
   - Handles Open Food Facts requests network-first, with a cache fallback.
@@ -218,7 +253,7 @@ Phases 1–4 are built, used and tested as a website first. iOS and Android must
   - Wake lock keeps the screen on during a workout.
   - Manual step entry and the "comes with the mobile app" note.
 - **Installed PWA** (Add to Home Screen on iOS and Android):
-  - Icon, splash and theme colour, in light and dark mode.
+  - Icon, splash and theme colour (the toolbar follows the colour scheme).
   - Standalone mode with no browser chrome.
   - Opens offline.
   - Data is kept between launches and is separate from the browser tab where the platform separates it.

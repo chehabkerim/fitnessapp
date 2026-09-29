@@ -19,12 +19,12 @@ export function usePhotoUrl(photoId: string | null, size: 'thumb' | 'detail') {
   return loaded && loaded.key === key ? loaded.url : null;
 }
 
-/** Square muscle tile (44–84px): your photo, else the muscle figure. Bordered like cards (2px accent in light). */
+/** Square muscle tile (44–84px): your photo, else the muscle figure. Bordered like cards. */
 export function ExerciseTile({ exercise, px }: { exercise: VisualSource & { name: string }; px: number }) {
   const { c } = useTheme();
   const v = getExerciseVisual(exercise, 'small');
   const url = usePhotoUrl(v.kind === 'photo' ? v.photoId : null, 'thumb');
-  const bw = c.cardBorderWidth;
+  const bw = 1;
   const inner = px - bw * 2;
   return (
     <View style={[styles.tile, { width: px, height: px, borderRadius: px >= 60 ? radius.md : radius.sm, backgroundColor: c.tileBg, borderColor: c.cardBorder, borderWidth: bw }]}>

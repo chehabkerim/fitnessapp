@@ -63,14 +63,14 @@ export function RestTimerBar({ label }: { label: string }) {
       accessibilityLabel={over ? 'Rest is over' : `Rest, ${formatClock(left / 1000)} left`}
     >
       <View style={[styles.track, { backgroundColor: c.line }]}>
-        <View style={[styles.fill, { backgroundColor: over ? c.tick : c.accentFill, width: `${(over ? 1 : progress) * 100}%` }]} />
+        <View style={[styles.fill, { backgroundColor: c.accent, width: `${(over ? 1 : progress) * 100}%` }]} />
       </View>
       <View style={styles.row}>
         <View style={styles.flex}>
           <Text variant="overline" color="muted">
             {over ? 'Rest is over' : 'Rest'}
           </Text>
-          <Text style={[styles.clock, { color: over ? c.tick : c.ink }]} numeric accessibilityElementsHidden>
+          <Text style={[styles.clock, { color: over ? c.accentText : c.ink }]} numeric accessibilityElementsHidden>
             {formatClock(Math.ceil(left / 1000))}
           </Text>
         </View>

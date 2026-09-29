@@ -15,6 +15,7 @@ import { PR_LABELS, prFlags } from '@/lib/prs';
 import { headlineRecord } from '@/lib/train';
 import { displayWeight, parseDecimal, parseInteger, toKg, unitLabel } from '@/lib/units';
 import { haptics } from '@/platform/haptics';
+import { useKeyShortcuts } from '@/platform/keys';
 import { restAlerts } from '@/platform/restAlerts';
 import { fonts, radius, space, useTheme } from '@/theme';
 import { AllExercisesSheet } from './AllExercisesSheet';
@@ -87,6 +88,9 @@ export function FocusWorkout({ detail, onFinish, onDiscard }: { detail: WorkoutD
     },
     [entries.length],
   );
+
+  // Desktop: ← / → move between exercises (like the swipe), unless a sheet or the keypad is open.
+  useKeyShortcuts({ ArrowLeft: () => go(idx - 1), ArrowRight: () => go(idx + 1) }, sheet == null && keypad == null && menuSet == null);
 
   // Rest ended (timer or Skip): drop the banner; after an exercise's last set, move to the next exercise.
   const onRestFinished = useCallback(() => {
@@ -170,9 +174,9 @@ export function FocusWorkout({ detail, onFinish, onDiscard }: { detail: WorkoutD
     <RestPanel label={ex.name} next={nextText} onFinished={onRestFinished} />
   ) : allDone && current.completedAt != null ? (
     idx < entries.length - 1 ? (
-      <Button label="Next exercise" icon="arrowRight" onPress={() => go(idx + 1)} />
+      <Button label="Next exercise" icon="arrowRight" onPress={() => go(idx + 1)} style={styles.bigButton} />
     ) : (
-      <Button label="Finish workout" icon="check" onPress={onFinish} />
+      <Button label="Finish workout" icon="check" onPress={onFinish} style={styles.bigButton} />
     )
   ) : (
     <View ref={completeRef} collapsable={false}>
@@ -181,6 +185,7 @@ export function FocusWorkout({ detail, onFinish, onDiscard }: { detail: WorkoutD
         icon="check"
         a11yLabel={current.completedAt != null ? `Done editing ${setName}` : `Complete ${setName}`}
         onPress={() => complete(current)}
+        style={styles.bigButton}
         testID="complete-set"
       />
     </View>
@@ -235,7 +240,7 @@ export function FocusWorkout({ detail, onFinish, onDiscard }: { detail: WorkoutD
             {banner ? (
               <PrBanner record={banner.record} value={banner.value} />
             ) : (
-              <View style={[styles.setCard, { backgroundColor: c.surface, borderColor: c.cardBorder, borderWidth: c.cardBorderWidth }]}>
+              <View style={[styles.setCard, { backgroundColor: c.surface, borderColor: c.cardBorder, borderWidth: 1 }]}>
                 <View style={styles.setHead}>
                   <Text variant="overline" color="accentText" numeric style={styles.flex}>
                     {label === 'W' ? 'Warm-up set' : `Set ${label} of ${working.length}`}
@@ -410,6 +415,7 @@ function ScrollBody({ children }: { children: React.ReactNode }) {
 }
 
 const styles = StyleSheet.create({
+  bigButton: { minHeight: 68 },
   fill: { flex: 1 },
   flex: { flex: 1 },
   scroll: { paddingHorizontal: space.md, paddingBottom: space.xl, gap: space.md },

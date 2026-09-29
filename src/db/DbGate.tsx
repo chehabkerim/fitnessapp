@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { Button } from '../components/Button';
+import { Logo } from '../components/Logo';
 import { Text } from '../components/Text';
 import { space, useTheme } from '../theme';
 import { openEngine } from './client';
@@ -10,7 +11,7 @@ import { attachEngine, detachEngine } from './store';
 
 type State = { kind: 'loading' } | { kind: 'ready' } | { kind: 'error'; message: string } | { kind: 'locked'; takeOver: () => Promise<OpenResult> } | { kind: 'lost' };
 
-/** Opens the database before rendering the app; shows loading, error and "open in another tab" states. */
+/** Opens the database before rendering the app; shows the splash, error and "open in another tab" states. */
 export function DbGate({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State>({ kind: 'loading' });
 
@@ -38,7 +39,7 @@ export function DbGate({ children }: { children: ReactNode }) {
   };
 
   if (state.kind === 'ready') return <>{children}</>;
-  if (state.kind === 'loading') return <Centered><ActivityIndicator /><Text color="muted">Opening your log…</Text></Centered>;
+  if (state.kind === 'loading') return <Splash />;
   if (state.kind === 'error')
     return (
       <Centered>
@@ -60,11 +61,22 @@ export function DbGate({ children }: { children: ReactNode }) {
   );
 }
 
+/** In-app splash while the log opens: the two-tone logo (the scheme's accent loads with the log, so Neon first). */
+function Splash() {
+  const { c } = useTheme();
+  return (
+    <Centered>
+      <Logo width={220} />
+      <ActivityIndicator color={c.accent} accessibilityLabel="Opening your log" />
+    </Centered>
+  );
+}
+
 function Centered({ children }: { children: ReactNode }) {
   const { c } = useTheme();
   return <View style={[styles.center, { backgroundColor: c.bg }]}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md, padding: space.xxl },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.xl, padding: space.xxl },
 });

@@ -4,55 +4,54 @@
 
 1. `npm run build:web`, then deploy `dist/` (for example `npx eas-cli@latest deploy`), or serve it on your network over HTTPS.
 2. Open the site in **iOS Safari** and **Android Chrome**. Later, repeat the checks as an installed app (Share → Add to Home Screen on iOS, Install app on Android).
-3. A fresh install starts in **dark** mode. Switch to light mode in Settings → Appearance and repeat the visual checks.
+3. The app is always dark. Try it once with your phone in light mode too: nothing should change.
 
-Compare what you see with `design/ignite/reference/` (the mockups) and `design/ignite/built/` (the same screens rendered from this build).
+Compare what you see with `design/plus-ultra/reference/` (the approved screens) and `design/plus-ultra/built/` (the same screens rendered from this build, in every scheme).
 
-## Ignite redesign
+## Stage 1: design system, colour schemes and screens
+
+### Brand
+- [ ] The installed app's icon is the purple square with the white "U" and green "LTRA". It's the same whichever scheme you pick.
+- [ ] While the app opens you briefly see the "PLUS ULTRA" wordmark. Settings → About shows it too, with "LTRA" in your scheme's colour.
+- [ ] Purple appears nowhere else in the app: buttons, banners and highlights all use the scheme colour.
 
 ### Train tab
-- [ ] The bottom tabs are Train, History, Exercises and Settings. There are no Today, Food or Progress tabs.
-- [ ] The date line shows today and the "this week" count updates after you finish a workout.
-- [ ] The Up next card shows the template you did least recently. After you finish it, the other template moves up.
-- [ ] Start workout on the purple button: the "START WORKOUT" text has a thin black outline and is easy to read in sunlight.
-- [ ] The two stat cards (lifted this week, sets this week) change after a workout.
+- [ ] The bottom tabs are Train, History, Exercises and Settings, with the active one in the scheme colour. There are no Today, Food or Progress tabs.
+- [ ] The date line shows today, and "N THIS WEEK" updates after you finish a workout.
+- [ ] With a workout in progress, a Resume card sits at the top.
+- [ ] The Up next card shows the template you did least recently, with a full-width START WORKOUT button filled in the scheme colour. The other template has an outlined START.
+- [ ] The two stat cards (kg lifted this week, sets this week) change after a workout.
 
 ### Active workout (focus mode)
-- [ ] One exercise at a time. Swipe left and right to move between exercises. The dashes at the top also jump when tapped.
+- [ ] One exercise at a time. Swipe left and right to move between exercises; the dashes at the top also jump when tapped.
 - [ ] "Exercise 1 of 5" opens the All exercises sheet: jump, reorder, remove, add, notes, discard workout.
 - [ ] Tap the big weight number: the in-app keypad opens and the system keyboard doesn't.
   - [ ] Type fast (e.g. 2, 7, ., 5): no key is lost.
   - [ ] The ± chips change the value by the right step (kg: 2.5 / 5; lb: 5 / 10; reps: 1).
-  - [ ] "Reps →" switches field; Done closes it.
+  - [ ] "Reps →" switches field; DONE (filled) closes it.
 - [ ] "Previous" copies last session's values into the set.
-- [ ] Complete set: a strong buzz (Android; iPhone web can't vibrate), a spring on the tick, and the rest timer appears at the bottom.
+- [ ] Complete set (the big filled button at the bottom): a strong buzz (Android; iPhone web can't vibrate), a spring on the tick, and the rest panel replaces the button.
 - [ ] Rest panel: −15s / +15s / Skip work, and the bar drains. "Next: set N · …" names the set you're about to do.
-- [ ] Beat your best weight: the purple PLUS ULTRA banner slides in, and the set row gets a green PR tag.
+- [ ] After an exercise's last set, the next exercise appears on its own once rest ends (or when you Skip).
+- [ ] Beat your best weight: the PLUS ULTRA banner slides in, filled in the scheme colour with dark (or, for dark accents, white) text, and the set row gets a PR tag.
 - [ ] Tap a done set's tick to un-complete it. The ⋯ button opens the warm-up toggle and delete.
 - [ ] Minimise (chevron, top left): the workout bar appears above the tabs; tap it to come back.
-- [ ] Finish: the "Workout complete" screen shows duration, volume, sets and a "Plus Ultra" records card.
+- [ ] Finish: the "Workout complete" screen shows duration, volume, sets and the PLUS ULTRA records card, then an outlined SAVE AS TEMPLATE and a filled DONE.
 
 ### History, Exercises, Settings
 - [ ] History groups workouts by week. Repeat starts a new workout with the same exercises. Tapping a card opens its detail.
 - [ ] Exercises lists the exercises under Back & Chest, Arms and My exercises. "Edit template" edits a template; "New template" and "New exercise" create them.
-- [ ] Exercise detail shows the muscle figure (green in both themes), cues and "Add your own photo".
-- [ ] Settings: the selected option in each segmented control has a green border. The toggles are visible when off.
-
-### Both themes
-- [ ] Dark: near-black background, neon green accent, no greyish text that's hard to read.
-- [ ] Light: white cards with a green 2px border; small green text is the darker green.
-- [ ] The installed app's status bar and splash are dark (#0E0E10).
+- [ ] Exercise detail shows the muscle figure in the scheme colour, the cues and "Add your own photo".
 
 ### Colour schemes (Settings → Appearance)
-- [ ] The Colour row shows five cards: Neon, Ultraviolet, Volt, Mono, Coral. Swipe it sideways to reach the last ones. Each card previews that scheme's background, accent and the purple button.
-- [ ] Tapping a card recolours the whole app at once, with no reload. The selected card is outlined in its accent and has a check.
-- [ ] Try each scheme in Dark and Light (the Mode control below). In every one, all text is easy to read, including small accent text like "SET 2 OF 3", NOW and "+ Add set".
-- [ ] Purple buttons and the PLUS ULTRA banner stay the same purple in every scheme.
-- [ ] Volt in Light mode: the current set row is filled volt with dark text; volt never appears as text or thin outlines (those use a darker olive).
-- [ ] Ultraviolet in Light mode has a faint violet tint rather than the neutral grey.
-- [ ] The installed app's status bar or browser toolbar colour follows the scheme and mode.
-- [ ] The scheme survives a reload and is included in Settings → Data export and import. The app icon doesn't change.
-- [ ] With VoiceOver or TalkBack, the cards read as "Ultraviolet colour scheme, selected" and so on.
+- [ ] Four cards in a 3-column grid: Neon, Volt, Mono, Coral. Each previews its background, a card with an accent dot and bar, and an accent button. Ultraviolet isn't there yet (it unlocks in stage 3).
+- [ ] The selected card has a thick border in its colour, a check and "SELECTED". Below the grid: "Plus Ultra is dark by design, so your colour always pops."
+- [ ] Tapping a card recolours the whole app at once, with no reload.
+- [ ] **Switch schemes mid-workout:** start a workout, log a set, minimise, change the scheme, resume. Everything (ticks, NOW outline, keypad, rest bar, banner) follows the new colour and the logged set is still there.
+- [ ] In every scheme, all text is easy to read, including small accent text like "SET 2 OF 3", NOW and "+ Add set". Mono uses white highlights with dark text on the buttons.
+- [ ] The browser toolbar or installed app's status bar follows the scheme's background.
+- [ ] The scheme survives a reload and is included in Settings → Data export and import.
+- [ ] With VoiceOver or TalkBack, the cards read as "Volt colour scheme, selected" and so on.
 
 ## Still required from earlier phases
 
@@ -67,7 +66,7 @@ Compare what you see with `design/ignite/reference/` (the mockups) and `design/i
 ## Desktop (Chrome, Safari, Firefox)
 
 - [ ] The centred column is at most 560px wide.
-- [ ] Keyboard: type in the weight box, Tab → reps, Tab → Complete set, Enter completes the set and moves to the next set's weight. Escape closes sheets.
+- [ ] Keyboard: type in the weight box, Tab → reps, Tab → Complete set, Enter completes the set and moves to the next set's weight. Escape closes sheets. ← / → move between exercises (when you're not typing in a box).
 - [ ] Hovering a set row shows the delete icon.
 - [ ] A second tab shows "open in another tab".
 - [ ] Settings → Data: export → reset → import restores everything, including exercise photos.

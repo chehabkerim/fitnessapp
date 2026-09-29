@@ -7,7 +7,7 @@ export function Card({ style, padded = true, accent, ...rest }: ViewProps & { pa
   const { c } = useTheme();
   return (
     <View
-      style={[styles.card, { backgroundColor: c.surface, borderColor: accent ? c.accent : c.cardBorder, borderWidth: accent ? Math.max(1.5, c.cardBorderWidth) : c.cardBorderWidth }, padded && styles.padded, style]}
+      style={[styles.card, { backgroundColor: c.surface, borderColor: accent ? c.accent : c.cardBorder, borderWidth: accent ? 1.5 : 1 }, padded && styles.padded, style]}
       {...rest}
     />
   );

@@ -62,6 +62,22 @@ test('keyboard: Tab moves weight → reps → complete, Enter completes', async 
   await ctx.close();
 });
 
+test('keyboard: ← / → move between exercises, but not while typing', async () => {
+  const ctx = await launch(newProfileDir());
+  const page = await openApp(ctx);
+  await startTemplate(page, 'Back & Chest');
+  await expect(page.getByText('Exercise 1 of 5')).toBeVisible();
+  await weight(page, EX, 1).focus();
+  await page.keyboard.press('ArrowRight'); // moves the caret, not the exercise
+  await expect(page.getByText('Exercise 1 of 5')).toBeVisible();
+  await weight(page, EX, 1).blur();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByText('Exercise 2 of 5')).toBeVisible();
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.getByText('Exercise 1 of 5')).toBeVisible();
+  await ctx.close();
+});
+
 test('export → reset → import restores the log', async () => {
   const ctx = await launch(newProfileDir());
   const page = await openApp(ctx);

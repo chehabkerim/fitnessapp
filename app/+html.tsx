@@ -28,7 +28,7 @@ export default function Root({ children }: PropsWithChildren) {
 }
 
 const css = `
-:root { --pu-bg: #0E0E10; --pu-focus: #39FF14; }
+:root { --pu-bg: #0E0E10; --pu-focus: #39FF14; color-scheme: dark; }
 html, body { background-color: var(--pu-bg); overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
 /* No double-tap zoom, so taps fire straight away (pinch zoom still works). */
 html { touch-action: manipulation; }

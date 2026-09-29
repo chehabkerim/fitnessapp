@@ -3,11 +3,11 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { Card, Divider, ListRow, Screen, SectionTitle, SegmentedControl, Text, Toggle } from '@/components';
+import { Card, Divider, ListRow, Logo, Screen, SectionTitle, SegmentedControl, Text, Toggle } from '@/components';
 import { useLive, useRepos } from '@/db';
 import { health } from '@/health';
 import { MOBILE_ONLY_NOTE, type HealthStatus } from '@/health/types';
-import type { ThemePref, Units } from '@/lib/domain';
+import type { Units } from '@/lib/domain';
 import { restAlerts } from '@/platform/restAlerts';
 import type { AlertPermission } from '@/platform/types';
 import { SchemePicker } from '@/features/settings/SchemePicker';
@@ -19,7 +19,7 @@ const REST = [60, 90, 120, 180];
 export default function Settings() {
   const router = useRouter();
   const repos = useRepos();
-  const { setPref, setColorScheme } = useTheme();
+  const { setColorScheme } = useTheme();
   const settings = useLive((r) => r.settings.get());
   const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
   const [alerts, setAlerts] = useState<AlertPermission | null>(null);
@@ -40,9 +40,6 @@ export default function Settings() {
       />
 
       <SectionTitle>Appearance</SectionTitle>
-      <Text variant="label" color="muted" style={styles.hint}>
-        Colour
-      </Text>
       <SchemePicker
         value={settings.colorScheme}
         onChange={(colorScheme) => {
@@ -50,18 +47,9 @@ export default function Settings() {
           repos.settings.update({ colorScheme });
         }}
       />
-      <Text variant="label" color="muted" style={styles.modeLabel}>
-        Mode
+      <Text color="muted" style={styles.appearanceNote}>
+        Plus Ultra is dark by design, so your colour always pops.
       </Text>
-      <SegmentedControl<ThemePref>
-        label="Mode"
-        value={settings.theme}
-        options={[{ value: 'system', label: 'System' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }]}
-        onChange={(theme) => {
-          setPref(theme);
-          repos.settings.update({ theme });
-        }}
-      />
 
       <SectionTitle>Rest timer</SectionTitle>
       <Text variant="caption" color="muted" style={styles.hint}>
@@ -117,7 +105,9 @@ export default function Settings() {
       </Card>
 
       <SectionTitle>About</SectionTitle>
-      <Text variant="heading">Plus Ultra</Text>
+      <View style={styles.logo}>
+        <Logo width={200} />
+      </View>
       <Text color="muted">Version {Constants.expoConfig?.version ?? '0.1.0'} · Everything stays on this device. No account, no tracking.</Text>
     </Screen>
   );
@@ -125,7 +115,8 @@ export default function Settings() {
 
 const styles = StyleSheet.create({
   hint: { marginBottom: space.sm },
-  modeLabel: { marginTop: space.lg, marginBottom: space.sm },
+  appearanceNote: { marginTop: space.sm },
+  logo: { alignItems: 'flex-start', marginBottom: space.sm },
   card: { marginTop: space.md },
   pad: { paddingHorizontal: space.md },
 });

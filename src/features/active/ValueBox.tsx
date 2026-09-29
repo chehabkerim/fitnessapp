@@ -31,7 +31,7 @@ export const ValueBox = forwardRef<TextInput, ValueBoxProps>(function ValueBox(p
   const numberStyle = [styles.number, { color: p.value === '' && !focused ? c.muted : c.ink }];
 
   return (
-    <View style={[styles.box, p.size === 'wide' && styles.wide, { backgroundColor: c.raised, borderColor: focused ? c.accent : c.cardBorderWidth > 1 ? c.accent : c.line, borderWidth: focused ? 2 : c.cardBorderWidth }]}>
+    <View style={[styles.box, p.size === 'wide' && styles.wide, { backgroundColor: c.raised, borderColor: focused ? c.accent : c.line, borderWidth: focused ? 2 : 1 }]}>
       {p.typing ? (
         <TextInput
           ref={ref}

@@ -1,32 +1,23 @@
-// Ignite design tokens. Colours come from the colour schemes (./schemes): one token object per
-// scheme × mode, all checked against WCAG AA in src/theme/contrast.test.ts.
+// Plus Ultra design tokens. Dark only: one token object per colour scheme (./schemes), all checked
+// against WCAG AA in src/theme/contrast.test.ts.
 
 import { COLOR_SCHEMES, type ColorScheme } from '../lib/domain';
-import type { Mode } from '../lib/theme';
-import { buildColors } from './schemes';
+import { buildColors, SCHEMES } from './schemes';
 
 export type ColorKey = keyof ReturnType<typeof buildColors>;
-export type Colors = { [K in ColorKey]: string } & { cardBorderWidth: number };
+export type Colors = { [K in ColorKey]: string };
 
-export const cardBorderWidth = { dark: 1, light: 2 } as const;
+/** Every scheme, built once. */
+export const themes = Object.fromEntries(COLOR_SCHEMES.map((scheme) => [scheme, buildColors(SCHEMES[scheme].base)])) as Record<ColorScheme, Colors>;
 
-/** Every scheme × mode, built once. */
-export const themes = Object.fromEntries(
-  COLOR_SCHEMES.map((scheme) => [
-    scheme,
-    {
-      dark: { ...buildColors(scheme, 'dark'), cardBorderWidth: cardBorderWidth.dark },
-      light: { ...buildColors(scheme, 'light'), cardBorderWidth: cardBorderWidth.light },
-    },
-  ]),
-) as Record<ColorScheme, Record<Mode, Colors>>;
+/** Brand colours: only for the logo, the app icon and badge enamel. Never a UI colour. */
+export const brand = { purple: '#8E48C0' } as const;
 
 export const space = { xxs: 4, xs: 8, sm: 12, md: 16, lg: 20, xl: 24, xxl: 32, xxxl: 40, huge: 56 } as const;
 export const radius = { row: 12, sm: 10, md: 14, button: 16, card: 20, xl: 22, pill: 999 } as const;
 
 export const fonts = {
   // Barlow Condensed: display and all numbers
-  cond600: 'BarlowCondensed_600SemiBold',
   cond700: 'BarlowCondensed_700Bold',
   cond800: 'BarlowCondensed_800ExtraBold',
   cond700i: 'BarlowCondensed_700Bold_Italic',

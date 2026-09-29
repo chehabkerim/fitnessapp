@@ -7,13 +7,13 @@ const config: ExpoConfig = {
   version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
-  userInterfaceStyle: 'automatic',
+  userInterfaceStyle: 'dark',
   backgroundColor: '#0E0E10',
   ios: { supportsTablet: false, bundleIdentifier: 'app.plusultra.tracker' },
   android: {
     package: 'app.plusultra.tracker',
     adaptiveIcon: {
-      backgroundColor: '#0E0E10',
+      backgroundColor: '#8E48C0', // brand purple, as in design/plus-ultra/app-icon.svg
       foregroundImage: './assets/android-icon-foreground.png',
       monochromeImage: './assets/android-icon-monochrome.png',
     },
@@ -32,10 +32,9 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
-        image: './assets/splash-icon.png',
-        imageWidth: 120,
+        image: './assets/splash-icon.png', // the two-tone wordmark (Neon accent; the app is always dark)
+        imageWidth: 220,
         backgroundColor: '#0E0E10',
-        dark: { image: './assets/splash-icon.png', backgroundColor: '#0E0E10' },
       },
     ],
     'expo-font',

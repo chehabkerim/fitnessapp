@@ -1,4 +1,5 @@
 export { Text } from './Text';
+export { Logo } from './Logo';
 export { ElapsedText } from './ElapsedText';
 export { Button, IconButton } from './Button';
 export { Card, Divider } from './Card';

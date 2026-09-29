@@ -1,12 +1,11 @@
 import { ActivityIndicator, Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 
-import { OutlinedText } from '../platform/OutlinedText';
 import { fonts, layout, radius, space, useTheme } from '../theme';
 import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
 
 /**
- * primary: purple fill, outlined condensed label, ≥ 64px (Start workout, Complete set, Done)
+ * primary: accent fill with onAccent condensed label, ≥ 64px (Start workout, Complete set, Done)
  * secondary: transparent with a 1.5px neutral outline
  * accent: transparent with an accent outline and accent label (Finish, Skip)
  * ghost: text only, accent ink; link: underlined body text
@@ -28,7 +27,7 @@ export interface ButtonProps extends Omit<PressableProps, 'style' | 'children'> 
 export function Button({ label, kind = 'primary', icon, loading, compact, disabled, style, a11yLabel, ...rest }: ButtonProps) {
   const { c } = useTheme();
   const primary = kind === 'primary';
-  const fg = primary ? c.onPurple : kind === 'accent' ? c.accentText : kind === 'danger' ? c.danger : kind === 'ghost' ? c.accentText : c.ink;
+  const fg = primary ? c.onAccent : kind === 'accent' ? c.accentText : kind === 'danger' ? c.danger : kind === 'ghost' ? c.accentText : c.ink;
   const border = kind === 'secondary' ? c.outline : kind === 'accent' ? c.accent : kind === 'danger' ? c.danger : 'transparent';
   const text = kind === 'link' || kind === 'ghost';
   const size = compact ? 20 : 24;
@@ -42,7 +41,7 @@ export function Button({ label, kind = 'primary', icon, loading, compact, disabl
       style={(state) => [
         styles.base,
         text ? styles.text : compact ? styles.compact : primary ? styles.primary : styles.regular,
-        { backgroundColor: primary ? c.purple : 'transparent', borderColor: border, borderWidth: text ? 0 : 1.5 },
+        { backgroundColor: primary ? c.accent : 'transparent', borderColor: border, borderWidth: text || primary ? 0 : 1.5 },
         { opacity: disabled ? 0.45 : state.pressed ? 0.8 : (state as { hovered?: boolean }).hovered ? 0.9 : 1, transform: [{ scale: state.pressed && !text ? 0.97 : 1 }] },
         style,
       ]}
@@ -62,9 +61,9 @@ export function Button({ label, kind = 'primary', icon, loading, compact, disabl
               {label}
             </Text>
           ) : primary ? (
-            <OutlinedText fontFamily={fonts.cond800i} fontSize={size} color={fg} uppercase letterSpacing={0.4} accessible={false}>
+            <Text numberOfLines={1} style={{ fontFamily: fonts.cond800i, fontSize: size, lineHeight: size + 4, color: fg, textTransform: 'uppercase', letterSpacing: 0.4 }}>
               {label}
-            </OutlinedText>
+            </Text>
           ) : (
             <Text numberOfLines={1} style={{ fontFamily: fonts.cond800i, fontSize: compact ? 18 : 19, lineHeight: compact ? 22 : 24, color: fg, textTransform: 'uppercase' }}>{label}</Text>
           )}

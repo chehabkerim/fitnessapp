@@ -1,41 +1,41 @@
-// Renders PWA and app icons from assets/brand/mark.svg with the local Chromium (dev-only script).
+// Renders the PWA and native icons from design/plus-ultra/app-icon.svg and app-icon-maskable.svg, and the
+// splash image from the two-tone wordmark, with the local Chromium (dev-only; no extra dependency).
 // Usage: node scripts/make-icons.mjs
 import { chromium } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
-const mark = readFileSync(join(root, 'assets/brand/mark.svg'), 'utf8');
-const inner = mark.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
-const glyph = inner.replace(/<rect[^>]*\/>/, ''); // the plus marks only
+const read = (f) => readFileSync(join(root, 'design/plus-ultra', f), 'utf8').replace(/<\?xml[^>]*>\s*/, '');
+const icon = read('app-icon.svg');
+const maskable = read('app-icon-maskable.svg');
+const wordmark = read('logo-wordmark-two-tone.svg');
+// Android adaptive icon layers: the maskable artwork without its purple square (app.config supplies it).
+const foreground = maskable.replace(/<rect[^>]*\/>/, '');
+const monochrome = foreground.replace(/fill="#[0-9A-Fa-f]{6}"/g, 'fill="#000000"');
 
-// full: rounded tile; square: full-bleed (maskable/Android, safe zone 80%); bare: glyph on transparent or given bg
-const svg = (kind, bg) => {
-  if (kind === 'full') return mark;
-  const scale = kind === 'maskable' ? 0.72 : 0.9;
-  const t = 256 - 256 * scale;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">${bg ? `<rect width="512" height="512" fill="${bg}"/>` : ''}<g transform="translate(${t} ${t}) scale(${scale})">${glyph}</g></svg>`;
-};
+const sized = (svg, w, h = w) => svg.replace(/<svg ([^>]*?)(?:\s*width="\d+" height="\d+")?>/, `<svg $1 width="${w}" height="${h}">`);
 
 const outputs = [
-  ['public/icons/icon-192.png', 192, svg('full')],
-  ['public/icons/icon-512.png', 512, svg('full')],
-  ['public/icons/maskable-512.png', 512, svg('maskable', '#0E0E10')],
-  ['public/icons/apple-touch-icon.png', 180, svg('maskable', '#0E0E10')],
-  ['public/favicon.png', 48, svg('full')],
-  ['assets/favicon.png', 48, svg('full')],
-  ['assets/icon.png', 1024, svg('maskable', '#0E0E10')],
-  ['assets/splash-icon.png', 512, svg('full')],
-  ['assets/android-icon-foreground.png', 512, svg('maskable')],
-  ['assets/android-icon-monochrome.png', 512, svg('maskable').replaceAll('#39FF14', '#000000')],
+  ['public/icons/icon-192.png', 192, icon],
+  ['public/icons/icon-512.png', 512, icon],
+  ['public/icons/maskable-512.png', 512, maskable],
+  ['public/icons/apple-touch-icon.png', 180, icon],
+  ['public/favicon.png', 48, icon],
+  ['assets/favicon.png', 48, icon],
+  ['assets/icon.png', 1024, icon],
+  ['assets/android-icon-foreground.png', 512, foreground],
+  ['assets/android-icon-monochrome.png', 512, monochrome],
+  ['assets/splash-icon.png', [1040, 545], wordmark],
 ];
 
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });
 const page = await browser.newPage();
-for (const [out, size, markup] of outputs) {
-  await page.setViewportSize({ width: size, height: size });
-  await page.setContent(`<html><body style="margin:0;background:transparent">${markup.replace('<svg ', `<svg width="${size}" height="${size}" `)}</body></html>`);
-  await page.screenshot({ path: join(root, out), omitBackground: true, clip: { x: 0, y: 0, width: size, height: size } });
+for (const [out, size, svg] of outputs) {
+  const [w, h] = Array.isArray(size) ? size : [size, size];
+  await page.setViewportSize({ width: w, height: h });
+  await page.setContent(`<html><body style="margin:0;background:transparent">${sized(svg, w, h)}</body></html>`);
+  await page.screenshot({ path: join(root, out), omitBackground: true, clip: { x: 0, y: 0, width: w, height: h } });
   console.log(out);
 }
 await browser.close();
