@@ -53,6 +53,21 @@ Compare what you see with `design/plus-ultra/reference/` (the approved screens) 
 - [ ] The scheme survives a reload and is included in Settings → Data export and import.
 - [ ] With VoiceOver or TalkBack, the cards read as "Volt colour scheme, selected" and so on.
 
+## Stage 2: badges
+
+- [ ] **Existing log:** the first time you open this version, Train shows "You've already earned N badges" once. "See your badges" opens the case; the × dismisses it for good.
+- [ ] **New user:** with no workouts, Train's Next badge card shows First Rep, and the badge case says to finish your first workout.
+- [ ] **Earn a badge:** finish a workout. Below the PLUS ULTRA records, "BADGES EARNED" reveals each new badge one after another, each with a shine across the emblem (and a buzz on Android). Revisiting that summary later shows them without the animation.
+- [ ] Nothing is awarded mid-set: completing sets never shows a badge; only finishing does.
+- [ ] Badge case (Train's Next badge card, History → Badges, or "See all badges" on Workout complete): "N / 26 EARNED", grouped by category, earned first, locked ones with a progress bar like "37 / 50".
+- [ ] Badge detail: the large emblem inside a ring, "BRONZE · TIER I", what you've done ("12 workouts finished · Earned 3 Oct"), the bar to the next badge ("3 more workouts to Quarter Century"), the category ladder (tap to switch), and the workout that earned it (tap to open).
+- [ ] Emblems look sharp both small (list) and large (detail): bronze, silver, gold and diamond rims, stars, and the grey locked style.
+- [ ] Early Riser / Night Shift count by the time you finish (before 08:00 / from 21:00).
+- [ ] No Set Left Behind: finish a template workout with every planned set ticked. Skipping a set (finish and discard it) doesn't count.
+- [ ] Delete the workout that earned a badge: the badge stays. Settings → Data → Reset all data removes all badges.
+- [ ] Export → reset → import: your badges come back.
+- [ ] With VoiceOver or TalkBack, emblems read like "Ten Down badge, bronze, locked, 3 of 10 workouts". With Reduce Motion on, there's no shine.
+
 ## Still required from earlier phases
 
 - [ ] Kill test: log a set, immediately swipe the app away in the app switcher, reopen: the set is there. Repeat while typing in a set with the keypad.

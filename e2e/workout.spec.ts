@@ -102,6 +102,9 @@ test('export → reset → import restores the log', async () => {
 
   await page.goto('/history');
   await expect(page.getByRole('button', { name: /, Arms$/ })).toBeVisible();
+  // Badges travel with the export
+  await page.goto('/badges');
+  await expect(page.getByRole('img', { name: 'First Rep badge, bronze, earned' })).toBeVisible();
   await ctx.close();
 });
 

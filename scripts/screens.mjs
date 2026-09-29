@@ -4,7 +4,7 @@
 // Builds a realistic history with Playwright's clock, then captures on a touch device (keypad, no hover).
 // Usage: npm run build:web && node scripts/serve.mjs 4173 & node scripts/ignite-screens.mjs
 import { chromium } from '@playwright/test';
-import { mkdirSync, mkdtempSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -24,6 +24,7 @@ async function close(ctx) {
 
 async function context(profile, { touch }) {
   return chromium.launchPersistentContext(profile, {
+    acceptDownloads: true,
     executablePath: EXE,
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 2,
@@ -204,8 +205,39 @@ async function capture(profile, scheme) {
     await p.getByText(EX).first().click();
     await p.waitForTimeout(700);
     await shot(p, '8-exercise-detail');
+
+    // Stage 2: badges
+    await p.goto(`${BASE}/workouts`);
+    await p.getByText('Up next').first().waitFor();
+    await p.waitForTimeout(500);
+    await p.screenshot({ path: join(OUT, 'train-full-neon.png'), fullPage: true });
+    await p.goto(`${BASE}/badges`);
+    await p.waitForTimeout(800);
+    await shot(p, '11-badges');
+    await p.goto(`${BASE}/badges/detail?id=plus_ultra`);
+    await p.waitForTimeout(800);
+    await p.screenshot({ path: join(OUT, '12-badge-detail-neon.png'), fullPage: true });
+    await allEarned(p);
+    await p.goto(`${BASE}/badges`);
+    await p.waitForTimeout(800);
+    await p.screenshot({ path: join(OUT, '13-badges-all-earned-neon.png'), fullPage: true });
   }
   await close(ctx);
+}
+
+/** Imports an export with every badge earned (to show all tiers and icons). Replaces the data. */
+async function allEarned(p) {
+  await p.goto(`${BASE}/settings/data`);
+  const [dl] = await Promise.all([p.waitForEvent('download'), p.getByRole('button', { name: 'Export JSON' }).click()]);
+  const data = JSON.parse(readFileSync(await dl.path(), 'utf8'));
+  const ids = ['first_rep', 'ten_down', 'quarter_century', 'half_hundred', 'centurion', 'iron_regular', 'two_week_run', 'month_strong', 'eight_week_engine', 'quarter_year', 'half_year_hero', 'year_of_iron', 'plus_ultra', 'beyond_10', 'beyond_50', 'clean_sweep', 'tonnes_10', 'tonnes_50', 'tonnes_100', 'tonnes_500', 'tonnes_1000', 'early_riser', 'night_shift', 'comeback', 'no_set_left_behind', 'full_rotation'];
+  data.tables.badges_earned = ids.map((badgeId, i) => ({ id: i + 1, badgeId, earnedAt: at(24, '18:00:00').getTime() - i * 86400000, workoutId: null }));
+  const file = join(tmpdir(), `all-badges-${Date.now()}.json`);
+  writeFileSync(file, JSON.stringify(data));
+  const [chooser] = await Promise.all([p.waitForEvent('filechooser'), p.getByRole('button', { name: 'Import JSON' }).click()]);
+  await chooser.setFiles(file);
+  await p.getByRole('button', { name: 'Import and replace' }).click();
+  await p.getByText(/Imported your backup/).waitFor();
 }
 
 const schemes = process.argv.slice(2).length ? process.argv.slice(2) : ['Neon', 'Volt', 'Mono', 'Coral'];

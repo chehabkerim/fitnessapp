@@ -21,7 +21,7 @@ export default function History() {
   const weeks = groupByWeek(rows, (h) => h.workout.date);
 
   return (
-    <Screen title="History" inTabs>
+    <Screen title="History" inTabs right={<Button label="Badges" kind="ghost" compact onPress={() => router.push('/badges')} />}>
       {rows.length === 0 ? (
         <EmptyState title="No workouts yet" body="Finished workouts appear here, week by week, with their volume and records.">
           <Button label="Go to Train" onPress={() => router.push('/workouts')} />

@@ -17,6 +17,12 @@ export function formatDayMonth(date: string): string {
   return `${FULL_DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
 }
 
+/** "3 Oct" for a timestamp (local date). */
+export function formatShortDate(ms: number): string {
+  const d = new Date(ms);
+  return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+}
+
 /** 83 → "1:23"; 3723 → "1:02:03". */
 export function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));

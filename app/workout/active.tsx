@@ -41,13 +41,15 @@ function ActiveWorkoutBody({ detail, minimise }: { detail: WorkoutDetail; minimi
   const finish = async (discardIncomplete: boolean) => {
     const firstEver = repos.workouts.finishedCount() === 0;
     repos.workouts.finish(w.id, { discardIncomplete });
+    // Badges are awarded when a workout finishes (never mid-set); the summary reveals them.
+    const earned = repos.badges.evaluate();
     repos.appState.update({ restEndsAt: null, restDurationSec: null });
     if (firstEver && repos.appState.get().storagePersistRequestedAt == null) {
       repos.appState.update({ storagePersistRequestedAt: Date.now() });
       void requestPersistentStorage();
     }
     await flushNow();
-    router.replace({ pathname: '/workout/summary', params: { id: String(w.id) } });
+    router.replace({ pathname: '/workout/summary', params: { id: String(w.id), ...(earned.length ? { reveal: '1' } : {}) } });
   };
   const onFinish = () => {
     const incomplete = repos.workouts.incompleteCount(w.id);

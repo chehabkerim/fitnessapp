@@ -2,4 +2,4 @@
 export { useLive, useRepos, getRepos, flushNow } from './store';
 export { DbGate } from './DbGate';
 export * from './repos';
-export type { SettingsRow, ExerciseRow, TemplateRow, WorkoutRow, SetRow, WorkoutExerciseRow, AppStateRow } from './schema';
+export type { SettingsRow, ExerciseRow, TemplateRow, WorkoutRow, SetRow, WorkoutExerciseRow, AppStateRow, BadgeEarnedRow } from './schema';

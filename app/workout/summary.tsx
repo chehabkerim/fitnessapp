@@ -5,21 +5,26 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Card, Divider, EmptyState, Screen, Sheet, Text } from '@/components';
 import { useLive, useRepos } from '@/db';
+import { EarnedBadgeRow } from '@/features/badges/EarnedBadgeRow';
 import { formatRecord, formatVolumeIn } from '@/features/workouts/format';
 import { formatClock, formatDayMonth } from '@/lib/format';
+import { BADGE_BY_ID } from '@/lib/badges';
 import { PR_LABELS } from '@/lib/prs';
 import { headlineRecord } from '@/lib/train';
 import { unitLabel } from '@/lib/units';
 import { fonts, radius, space, useTheme } from '@/theme';
 
 export default function Summary() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, reveal } = useLocalSearchParams<{ id: string; reveal?: string }>();
   const router = useRouter();
   const repos = useRepos();
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const units = useLive((r) => r.settings.get().units);
   const summary = useLive((r) => r.workouts.summary(Number(id)), [id]);
+  const badges = useLive((r) => r.badges.forWorkout(Number(id)).map((b) => BADGE_BY_ID.get(b.badgeId)).filter((b) => b != null), [id]);
+  // Reveal (shine + haptic, staggered) only straight after finishing; a later visit shows them still.
+  const [animate] = useState(reveal === '1');
   const [saveOpen, setSaveOpen] = useState(false);
   const [templateName, setTemplateName] = useState('');
   const [saved, setSaved] = useState(false);
@@ -107,6 +112,18 @@ export default function Summary() {
         </Card>
       )}
 
+      {badges.length > 0 && (
+        <View style={styles.badges}>
+          <Text variant="overline" color="muted" accessibilityRole="header">
+            Badges earned
+          </Text>
+          {badges.map((b, i) => (
+            <EarnedBadgeRow key={b.id} badge={b} units={units} revealAfter={animate ? 500 + i * 700 : undefined} onPress={() => router.push({ pathname: '/badges/detail', params: { id: b.id } })} />
+          ))}
+          <Button label="See all badges" kind="link" onPress={() => router.push('/badges')} style={styles.allBadges} />
+        </View>
+      )}
+
       <Sheet visible={saveOpen} onClose={() => setSaveOpen(false)} title="Save as template">
         <TextInput
           value={templateName}
@@ -153,6 +170,8 @@ const styles = StyleSheet.create({
   stat: { flex: 1, paddingVertical: space.sm, paddingHorizontal: space.sm },
   statValue: { fontFamily: fonts.cond800i, fontSize: 34, lineHeight: 38 },
   records: { marginTop: space.lg, gap: space.xs, padding: space.lg },
+  badges: { marginTop: space.xl, gap: space.xs },
+  allBadges: { alignSelf: 'flex-start' },
   recordsHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.xs },
   recordsTitle: { fontFamily: fonts.cond800i, fontSize: 40, lineHeight: 42, textTransform: 'uppercase' },
   recordRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.sm },

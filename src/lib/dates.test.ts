@@ -1,5 +1,5 @@
 import { addDays, daysBetween, groupByWeek, parseLocalDate, toLocalDate, weekStart } from './dates';
-import { formatClock, formatDay, formatDayMonth, formatDuration, formatFullDate, formatWeekLabel, restTitle } from './format';
+import { formatClock, formatDay, formatDayMonth, formatDuration, formatFullDate, formatShortDate, formatWeekLabel, restTitle } from './format';
 
 describe('dates', () => {
   it('formats local dates as YYYY-MM-DD', () => {
@@ -44,5 +44,11 @@ describe('format', () => {
     expect(formatWeekLabel('2026-09-14', '2026-09-24')).toBe('Last week');
     expect(formatWeekLabel('2026-09-07', '2026-09-24')).toBe('7–13 Sep');
     expect(formatWeekLabel('2026-09-28', '2026-10-20')).toBe('28 Sep – 4 Oct');
+  });
+});
+
+describe('formatShortDate', () => {
+  it('formats a timestamp as day and short month', () => {
+    expect(formatShortDate(new Date(2026, 9, 3, 18).getTime())).toBe('3 Oct');
   });
 });

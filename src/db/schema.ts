@@ -36,6 +36,10 @@ export const appState = sqliteTable(
     storagePersistRequestedAt: integer('storage_persist_requested_at'),
     lastExportAt: integer('last_export_at'),
     installNudgeShownAt: integer('install_nudge_shown_at'),
+    // Badges: 1 once already-earned badges have been awarded silently (first launch of the feature);
+    // the notice count drives the one-off "You've already earned N badges" card (null = nothing to show).
+    badgesVersion: integer('badges_version').notNull().default(0),
+    badgesNotice: integer('badges_notice'),
   },
   (t) => [check('app_state_singleton', sql`${t.id} = 1`)],
 );
@@ -95,6 +99,7 @@ export const workouts = sqliteTable(
     templateId: integer('template_id').references(() => templates.id, { onDelete: 'set null' }),
     startedAt: integer('started_at').notNull(),
     endedAt: integer('ended_at'), // null = in progress
+    plannedSets: integer('planned_sets'), // sets the template planned when the workout started (null: not from a template)
     notes: text('notes'),
     estimatedKcal: real('estimated_kcal'), // kept for later phases; not shown
     ...timestamps,
@@ -111,6 +116,7 @@ export const workoutExercises = sqliteTable(
     position: integer('position').notNull(),
     restSec: integer('rest_sec'),
     notes: text('notes'),
+    plannedSets: integer('planned_sets'), // from the template when the workout started (null: added by hand)
   },
   (t) => [index('workout_exercises_workout_idx').on(t.workoutId, t.position), index('workout_exercises_exercise_idx').on(t.exerciseId)],
 );
@@ -132,6 +138,14 @@ export const sets = sqliteTable(
   (t) => [index('sets_workout_exercise_idx').on(t.workoutExerciseId, t.position)],
 );
 
+/** Badges once earned are kept even if the workouts behind them change; only "Reset data" removes them. */
+export const badgesEarned = sqliteTable('badges_earned', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  badgeId: text('badge_id').notNull().unique(),
+  earnedAt: integer('earned_at').notNull(),
+  workoutId: integer('workout_id').references(() => workouts.id, { onDelete: 'set null' }),
+});
+
 export type SettingsRow = typeof settings.$inferSelect;
 export type AppStateRow = typeof appState.$inferSelect;
 export type ExerciseRow = typeof exercises.$inferSelect;
@@ -140,6 +154,7 @@ export type TemplateExerciseRow = typeof templateExercises.$inferSelect;
 export type WorkoutRow = typeof workouts.$inferSelect;
 export type WorkoutExerciseRow = typeof workoutExercises.$inferSelect;
 export type SetRow = typeof sets.$inferSelect;
+export type BadgeEarnedRow = typeof badgesEarned.$inferSelect;
 
 /** Tables in dependency order (export/import/reset). */
 export const TABLES_IN_ORDER = ['settings', 'app_state', 'exercises', 'templates', 'template_exercises', 'workouts', 'workout_exercises', 'sets'] as const;

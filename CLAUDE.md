@@ -87,6 +87,18 @@ Appearance:
 - Below the grid: "Plus Ultra is dark by design, so your colour always pops."
 - The scheme is stored in `settings.color_scheme` (default `neon`) and included in JSON export/import. A stored scheme that isn't selectable (Ultraviolet before it unlocks) falls back to Neon.
 
+### Badges (stage 2)
+- Principles: reward consistency and effort, never punish rest (no daily streaks). Badges are awarded when a workout finishes, never mid-set. Once earned a badge is kept, even if the workouts behind it are edited or deleted; only "Reset data" removes badges. Names are original; "Plus Ultra" appears only in the PR category.
+- Definitions: `/src/lib/badges/definitions.ts` (id, name, description, category, icon, bar label, tier 1–4 = Bronze/Silver/Gold/Diamond, target, pure progress function). 26 badges:
+  - Milestones (dumbbell; finished workouts): First Rep 1, Ten Down 10 (Bronze), Quarter Century 25, Half Hundred 50 (Silver), Centurion 100 (Gold), Iron Regular 250 (Diamond).
+  - Consistency (flame; consecutive Monday-start weeks with 2+ finished workouts, the current week counts once it reaches 2; earned from the best run, progress shows the run you can still extend): Two-Week Run 2, Month Strong 4 (Bronze), Eight-Week Engine 8, Quarter Year 13 (Silver), Half-Year Hero 26 (Gold), Year of Iron 52 (Diamond).
+  - Plus Ultra (bolt; one record = an exercise in a workout that beats its history on heaviest weight, best e1RM, best set volume or most reps; warm-ups never count; an exercise's first session is its baseline): Plus Ultra 1 (Bronze), Beyond ×10 (Silver), Beyond ×50 (Gold), Clean Sweep (a record on every trained exercise of a workout, 3+ exercises; Gold).
+  - Volume (kettlebell; total kg by the volume rules, lb in imperial): 10 t (Bronze, "about two elephants"), 50 t (Silver, a battle tank), 100 t (Gold, a blue whale), 500 t (Gold, more than a loaded jumbo jet), 1,000 t (Diamond, ten blue whales).
+  - Habits: Early Riser (sun; 5 workouts finished before 08:00 local), Night Shift (moon; 5 finished from 21:00), Comeback (return; a workout 14+ days after the previous one), No Set Left Behind (check; a template workout with every planned set completed; planned counts are stored at start in `workouts.planned_sets` / `workout_exercises.planned_sets` because finishing drops skipped sets), Full Rotation (loop; every current template within one Monday-start week, 2+ templates).
+- Evaluation: `replayBadgeStats` replays finished workouts in start order; `evaluateBadges` returns each badge's first earning workout (idempotent). The repository (`repos.badges`) stores them in `badges_earned` (badge_id unique, earned_at = that workout's end, workout_id nullable). Evaluated after every finish and after an import. The first launch of the feature (`app_state.badges_version` < 1) and every import award already-earned badges silently in one batch and set `app_state.badges_notice`, shown once as "You've already earned N badges" on Train. `badges_earned` is in the JSON export (version 2; version-1 exports import without it).
+- Emblem: `src/components/Badge.tsx` reproduces `design/plus-ultra/badge-emblem-reference.html` exactly (hexagon, tier metal rim and bevel, purple enamel, filled icon set except loop and return which use the outline set, 1–4 stars on the arc, diamond sparkles, number bar in Barlow Condensed 800 italic; locked = gunmetal, dark enamel, grey icon, no stars). The earn reveal is one 1.3 s shine sweep, skipped with reduce motion.
+- Screens: BADGES EARNED on Workout complete (staggered reveal with shine and a strong haptic), the Next badge card on Train, the badge case (`/badges`, "N / 26 EARNED", from Train, History and Workout complete), badge detail (`/badges/detail?id=`). Every emblem has an accessible label such as "Centurion badge, gold, locked, 37 of 100 workouts".
+
 ### Shape, motion, navigation
 - Radii: cards 20–22px, buttons 14–18px, rows 12px. Primary buttons are ≥ 64px tall (Complete set 68px). All tap targets are ≥ 48px.
 - Motion: 120–200ms, a slight spring when a set completes, and the PR banner slides in. Strong haptic on set complete and PR (native); `navigator.vibrate` on Android web.
@@ -119,7 +131,7 @@ Appearance:
 - `npm run test:e2e`: Playwright against `dist/` (build first). Set `PW_CHROMIUM_PATH` to use a preinstalled Chromium.
 - `npm run db:generate`: new Drizzle migration after a schema change (both engines use it).
 - `npm run build:preview`: the app as one self-contained page (`dist-preview/plus-ultra.html`) for the private claude.ai preview: scripts, fonts and sql.js inlined (WASM where allowed, asm.js fallback), no service worker.
-- `node scripts/screens.mjs [Neon Volt Mono Coral]`: renders the screens at 390px into `design/plus-ultra/built/` (every screen in Neon, the main ones in the other schemes; needs `dist/` served on port 4173).
+- `node scripts/screens.mjs [Neon Volt Mono Coral]`: renders the screens at 390px into `design/plus-ultra/built/` (every screen in Neon including the badge screens, the main ones in the other schemes; needs `dist/` served on port 4173).
 - `node scripts/make-icons.mjs`: icons and splash from `design/plus-ultra/`. `node scripts/gen-logo.mjs`: regenerates the logo paths.
 - Package installs in this environment: `EXPO_OFFLINE=1 npx expo install <pkg>` (the Expo version API is blocked here).
 

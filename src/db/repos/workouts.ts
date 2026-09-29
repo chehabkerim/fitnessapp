@@ -157,11 +157,16 @@ export function workoutRepo({ db, changed }: RepoCtx) {
 
         if (opts.kind === 'template' && templateId != null) {
           const items = db.select().from(templateExercises).where(eq(templateExercises.templateId, templateId)).orderBy(asc(templateExercises.position)).all();
+          let planned = 0;
           items.forEach((it, position) => {
-            const [we] = db.insert(workoutExercises).values({ workoutId, exerciseId: it.exerciseId, position, restSec: it.restSec }).returning({ id: workoutExercises.id }).all();
+            const count = Math.max(1, it.targetSets);
+            planned += count;
+            // Planned set counts are kept for the "No Set Left Behind" badge (finishing drops skipped sets).
+            const [we] = db.insert(workoutExercises).values({ workoutId, exerciseId: it.exerciseId, position, restSec: it.restSec, plannedSets: count }).returning({ id: workoutExercises.id }).all();
             const last = lastSession(it.exerciseId, workoutId);
-            insertSets(we!.id, Array.from({ length: Math.max(1, it.targetSets) }, (_, i) => prefillAt(last, i)));
+            insertSets(we!.id, Array.from({ length: count }, (_, i) => prefillAt(last, i)));
           });
+          if (planned > 0) db.update(workouts).set({ plannedSets: planned }).where(eq(workouts.id, workoutId)).run();
           db.update(templates).set({ lastUsedAt: now }).where(eq(templates.id, templateId)).run();
         } else if (opts.kind === 'repeat') {
           entriesOf(opts.workoutId).forEach((e, position) => {

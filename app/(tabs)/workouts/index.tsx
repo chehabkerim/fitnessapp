@@ -14,6 +14,7 @@ import { shouldShowInstallNudge } from '@/lib/nudge';
 import { lastDoneLabel, orderByUpNext, weekTotals } from '@/lib/train';
 import { unitLabel } from '@/lib/units';
 import { install } from '@/platform/install';
+import { BadgesNoticeCard, NextBadgeCard } from '@/features/badges/TrainBadgeCards';
 import { fonts, radius, space, useTheme } from '@/theme';
 
 /** Primary muscles across a template (secondary = the rest of its secondaries). */
@@ -82,6 +83,8 @@ export default function Train() {
           </Card>
         </Pressable>
       )}
+
+      <BadgesNoticeCard />
 
       {nudge && (
         <Card style={styles.gapCard}>
@@ -157,6 +160,7 @@ export default function Train() {
           </Text>
         </Card>
       </View>
+      <NextBadgeCard />
       {sheet}
     </Screen>
   );

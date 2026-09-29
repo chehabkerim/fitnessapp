@@ -33,6 +33,8 @@ export function attachEngine(e: Engine): Repos {
       notify();
     },
   });
+  // First launch of badges (or a new badges version): award what the history already earned, silently.
+  repos.badges.backfillIfNeeded();
   notifyEngine();
   notify();
   return repos;

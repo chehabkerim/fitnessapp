@@ -1,13 +1,16 @@
-import { appState, exercises, sets, settings, templateExercises, templates, workoutExercises, workouts } from '../schema';
+import { appState, badgesEarned, exercises, sets, settings, templateExercises, templates, workoutExercises, workouts } from '../schema';
 import { ensureSeed } from '../seed';
+import { backfillBadges } from './badges';
 import type { RepoCtx } from './context';
 
-const TABLES = { settings, app_state: appState, exercises, templates, template_exercises: templateExercises, workouts, workout_exercises: workoutExercises, sets } as const;
+const TABLES = { settings, app_state: appState, exercises, templates, template_exercises: templateExercises, workouts, workout_exercises: workoutExercises, sets, badges_earned: badgesEarned } as const;
 type TableName = keyof typeof TABLES;
-const ORDER: TableName[] = ['settings', 'app_state', 'exercises', 'templates', 'template_exercises', 'workouts', 'workout_exercises', 'sets'];
+const ORDER: TableName[] = ['settings', 'app_state', 'exercises', 'templates', 'template_exercises', 'workouts', 'workout_exercises', 'sets', 'badges_earned'];
+/** Tables added after version 1; older exports without them import as empty. */
+const OPTIONAL: TableName[] = ['badges_earned'];
 
 export const EXPORT_FORMAT = 'plus-ultra';
-export const EXPORT_VERSION = 1;
+export const EXPORT_VERSION = 2;
 
 export interface ExportFile {
   format: typeof EXPORT_FORMAT;
@@ -25,8 +28,10 @@ export function validateExport(data: unknown): ExportFile {
   if (!d || typeof d !== 'object' || d.format !== EXPORT_FORMAT) throw new ImportError("This file isn't a Plus Ultra export.");
   if (typeof d.version !== 'number' || d.version > EXPORT_VERSION) throw new ImportError('This export comes from a newer version of the app.');
   if (!d.tables || typeof d.tables !== 'object') throw new ImportError('The export is missing its data.');
-  for (const t of ORDER) if (!Array.isArray((d.tables as Record<string, unknown>)[t])) throw new ImportError(`The export is missing the ${t} table.`);
-  return { ...d, photos: d.photos ?? {} } as ExportFile;
+  const tables = { ...d.tables } as Record<string, unknown>;
+  for (const t of OPTIONAL) tables[t] ??= [];
+  for (const t of ORDER) if (!Array.isArray(tables[t])) throw new ImportError(`The export is missing the ${t} table.`);
+  return { ...d, tables, photos: d.photos ?? {} } as ExportFile;
 }
 
 export function dataRepo({ db, changed }: RepoCtx) {
@@ -54,6 +59,8 @@ export function dataRepo({ db, changed }: RepoCtx) {
         }
       });
       ensureSeed(db);
+      // Award anything the imported history has earned (older exports have no badges), silently.
+      backfillBadges(db);
       changed();
     },
 

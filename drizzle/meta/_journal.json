@@ -15,6 +15,13 @@
       "when": 1790671664851,
       "tag": "0001_color_scheme",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790678146718,
+      "tag": "0002_badges",
+      "breakpoints": true
     }
   ]
 }

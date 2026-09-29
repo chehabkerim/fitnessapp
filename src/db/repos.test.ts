@@ -10,6 +10,7 @@ import { createTestDb } from './testing';
 
 const T0 = new Date(2026, 8, 20, 18, 0).getTime();
 const MIN = 60_000;
+const DAY = 24 * 60 * MIN;
 
 async function setup() {
   const t = await createTestDb();
@@ -219,5 +220,89 @@ describe('persistence', () => {
     r.workouts.addExercise(id, incline.id);
     r.workouts.discard(id);
     expect(db.get<{ n: number }>(sql`select count(*) as n from sets`)!.n).toBe(0);
+  });
+});
+
+describe('badges', () => {
+  it('awards on finish, records the workout, and is idempotent', async () => {
+    const { r, backAndChest } = await setup();
+    const id = r.workouts.start({ kind: 'template', templateId: backAndChest.template.id }, T0);
+    logAndFinish(r, id, { weightKg: 20, reps: 10 }, T0);
+    const added = r.badges.evaluate(T0 + 60 * MIN);
+    expect(added.map((b) => b.badgeId)).toEqual(expect.arrayContaining(['first_rep', 'no_set_left_behind']));
+    expect(added.every((b) => b.workoutId === id)).toBe(true);
+    expect(r.badges.evaluate(T0 + 61 * MIN)).toEqual([]);
+    expect(r.badges.forWorkout(id).map((b) => b.badgeId)[0]).toBe('first_rep');
+  });
+
+  it('records planned sets at a template start; skipped sets mean no "No Set Left Behind"', async () => {
+    const { r, backAndChest } = await setup();
+    const id = r.workouts.start({ kind: 'template', templateId: backAndChest.template.id }, T0);
+    const d = r.workouts.detail(id)!;
+    expect(d.workout.plannedSets).toBe(15);
+    expect(d.entries.every((e) => e.we.plannedSets === 3)).toBe(true);
+    const first = d.entries[0]!.sets[0]!;
+    r.workouts.updateSet(first.id, { weightKg: 20, reps: 10 });
+    r.workouts.setCompleted(first.id, true, T0);
+    r.workouts.finish(id, { discardIncomplete: true }, T0 + 30 * MIN);
+    const ids = r.badges.evaluate(T0 + 31 * MIN).map((b) => b.badgeId);
+    expect(ids).toContain('first_rep');
+    expect(ids).not.toContain('no_set_left_behind');
+    expect(r.workouts.start({ kind: 'empty' }, T0 + DAY)).toBeGreaterThan(0);
+    expect(r.workouts.detail(r.workouts.active()!.id)!.workout.plannedSets).toBeNull();
+  });
+
+  it('keeps earned badges when the workout behind them is deleted; reset removes them', async () => {
+    const { r, incline } = await setup();
+    const id = r.workouts.start({ kind: 'empty' }, T0);
+    r.workouts.addExercise(id, incline.id);
+    logAndFinish(r, id, { weightKg: 20, reps: 10 }, T0);
+    r.badges.evaluate(T0 + DAY);
+    r.workouts.remove(id);
+    const o = r.badges.overview(T0 + DAY);
+    expect(o.earned.get('first_rep')?.workoutId).toBeNull();
+    expect(o.statuses.find((s) => s.badge.id === 'first_rep')!.earned).toBe(true);
+    expect(o.stats.workouts).toBe(0);
+    r.data.resetAll();
+    expect(r.badges.overview().earned.size).toBe(0);
+  });
+
+  it('backfills silently once, with a one-off notice', async () => {
+    const { r, incline } = await setup();
+    for (let i = 0; i < 3; i++) {
+      const id = r.workouts.start({ kind: 'empty' }, T0 + i * DAY);
+      r.workouts.addExercise(id, incline.id);
+      logAndFinish(r, id, { weightKg: 20 + i, reps: 10 }, T0 + i * DAY);
+    }
+    expect(r.appState.get().badgesVersion).toBe(0);
+    r.badges.backfillIfNeeded(T0 + 5 * DAY);
+    const earned = r.badges.overview(T0 + 5 * DAY).earned;
+    expect([...earned.keys()].sort()).toEqual(['first_rep', 'plus_ultra']); // Sun, Mon, Tue: one qualifying week, not two
+    expect(r.appState.get()).toMatchObject({ badgesVersion: 1, badgesNotice: earned.size });
+    // Backfilled badges keep the date of the workout that earned them
+    expect(earned.get('first_rep')!.earnedAt).toBe(T0 + 45 * MIN);
+    r.badges.dismissNotice();
+    r.badges.backfillIfNeeded(T0 + 6 * DAY);
+    expect(r.appState.get().badgesNotice).toBeNull();
+  });
+
+  it('exports badges; importing an older export without them awards them silently', async () => {
+    const { r, incline } = await setup();
+    const id = r.workouts.start({ kind: 'empty' }, T0);
+    r.workouts.addExercise(id, incline.id);
+    logAndFinish(r, id, { weightKg: 20, reps: 10 }, T0);
+    r.badges.evaluate(T0 + DAY);
+    const tables = JSON.parse(JSON.stringify(r.data.exportTables()));
+    expect(tables.badges_earned).toHaveLength(1);
+
+    r.data.importTables(validateExport({ format: 'plus-ultra', version: 2, exportedAt: 'now', tables, photos: {} }));
+    expect(r.badges.overview().earned.has('first_rep')).toBe(true);
+    expect(r.appState.get().badgesNotice ?? null).toBeNull(); // nothing new to announce
+
+    delete tables.badges_earned; // an export from before badges
+    tables.app_state[0].badgesVersion = 0;
+    r.data.importTables(validateExport({ format: 'plus-ultra', version: 1, exportedAt: 'now', tables, photos: {} }));
+    expect(r.badges.overview().earned.get('first_rep')?.workoutId).toBe(id);
+    expect(r.appState.get().badgesNotice).toBe(1);
   });
 });
